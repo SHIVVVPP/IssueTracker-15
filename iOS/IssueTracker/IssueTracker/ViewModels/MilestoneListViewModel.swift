@@ -6,24 +6,44 @@
 //  Copyright © 2020 IssueTracker-15. All rights reserved.
 //
 
+import Combine
 import Foundation
 
-protocol MilestoneListViewModelProtocol: AnyObject {
-    var didFetch: (() -> Void)? { get set }
-    func needFetchItems()
-    func cellForItemAt(path: IndexPath) -> MilestoneItemViewModel
-    func numberOfItem() -> Int
+protocol MilestoneListViewModelTypes {
+    var inputs: MilestoneListViewModelInputs { get }
+    var outputs: MilestoneListViewModelOutputs { get }
+}
+
+protocol MilestoneListViewModelInputs {
+    func viewDidLoad()
     func addNewMileStone(title: String, dueDate: String, description: String)
     func editMileStone(at indexPath: IndexPath, title: String, description: String, dueDate: String)
 }
 
-class MilestoneListViewModel: MilestoneListViewModelProtocol {
-    var didFetch: (() -> Void)?
-    private var milestones = [MilestoneItemViewModel]()
+protocol MilestoneListViewModelOutputs {
+    var milestonePublisher: Published<[MilestoneItemViewModel]>.Publisher { get }
+}
+
+class MilestoneListViewModel {
     private var milestoneProvider: MilestoneProvidable?
+
+    @Published private var milestones = [MilestoneItemViewModel]()
 
     init(with milestoneProvider: MilestoneProvidable = MilestoneProvider.shared) {
         self.milestoneProvider = milestoneProvider
+    }
+}
+
+// MARK: - MilestoneListViewModelInputs Implementaion
+
+extension MilestoneListViewModel: MilestoneListViewModelInputs {
+    func viewDidLoad() {
+        milestoneProvider?.fetchMilestones { [weak self] milestones in
+            guard let `self` = self,
+                  let milestones = milestones
+            else { return }
+            milestones.forEach { self.milestones.append(MilestoneItemViewModel(milestone: $0, from: .fromServer)) }
+        }
     }
 
     func addNewMileStone(title: String, dueDate: String, description: String) {
@@ -32,9 +52,6 @@ class MilestoneListViewModel: MilestoneListViewModelProtocol {
                   let milestone = milestone
             else { return }
             self.milestones.insert(MilestoneItemViewModel(milestone: milestone, from: .fromServer), at: 0)
-            DispatchQueue.main.async {
-                self.didFetch?()
-            }
         })
     }
 
@@ -46,29 +63,19 @@ class MilestoneListViewModel: MilestoneListViewModelProtocol {
                   let milestone = milestone
             else { return }
             self.milestones[indexPath.row] = MilestoneItemViewModel(milestone: milestone, from: .fromSubmitView)
-            DispatchQueue.main.async {
-                self.didFetch?()
-            }
         }
     }
+}
 
-    func needFetchItems() {
-        milestoneProvider?.fetchMilestones { [weak self] milestones in
-            guard let `self` = self,
-                  let milestones = milestones
-            else { return }
-            milestones.forEach { self.milestones.append(MilestoneItemViewModel(milestone: $0, from: .fromServer)) }
-            DispatchQueue.main.async {
-                self.didFetch?()
-            }
-        }
-    }
+// MARK: - MilestoneListViewModelOutputs Implementation
 
-    func cellForItemAt(path: IndexPath) -> MilestoneItemViewModel {
-        return milestones[path.row]
-    }
+extension MilestoneListViewModel: MilestoneListViewModelOutputs {
+    var milestonePublisher: Published<[MilestoneItemViewModel]>.Publisher { $milestones }
+}
 
-    func numberOfItem() -> Int {
-        milestones.count
-    }
+// MARK: - MilestoneListViewModelType Implementation
+
+extension MilestoneListViewModel: MilestoneListViewModelTypes {
+    var inputs: MilestoneListViewModelInputs { self }
+    var outputs: MilestoneListViewModelOutputs { self }
 }

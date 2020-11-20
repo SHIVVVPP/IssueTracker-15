@@ -12,7 +12,7 @@ import UIKit
 class LabelListViewController: UIViewController {
     @IBOutlet var collectionView: UICollectionView!
 
-    var labelListViewModel: LabelListViewModelType?
+    var labelListViewModel: LabelListViewModelTypes?
     private var dataSource = LabelListDataSource()
 
     private var cancellables: Set<AnyCancellable> = []

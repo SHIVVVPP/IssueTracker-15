@@ -19,22 +19,24 @@ protocol LabelListViewModelOutputs {
     var labelPublisher: Published<[LabelItemViewModel]>.Publisher { get }
 }
 
-protocol LabelListViewModelType {
+protocol LabelListViewModelTypes {
     var inputs: LabelListViewModelInputs { get }
     var outputs: LabelListViewModelOutputs { get }
 }
 
-class LabelListViewModel: LabelListViewModelType, LabelListViewModelInputs, LabelListViewModelOutputs {
+class LabelListViewModel {
     private weak var labelProvider: LabelProvidable?
-
-    var labelPublisher: Published<[LabelItemViewModel]>.Publisher { $labels }
     @Published private var labels: [LabelItemViewModel]
 
     init(with labelProvider: LabelProvidable = LabelProvider.shared) {
         self.labelProvider = labelProvider
         labels = []
     }
+}
 
+// MARK: - LabelListViewModelInputs Implementation
+
+extension LabelListViewModel: LabelListViewModelInputs {
     func editLabel(at indexPath: IndexPath, title: String, desc: String, hexColor: String) {
         labelProvider?.editLabel(id: labels[indexPath.row].id, title: title, description: desc, color: hexColor) { [weak self] label in
             guard let `self` = self,
@@ -61,7 +63,17 @@ class LabelListViewModel: LabelListViewModelType, LabelListViewModelInputs, Labe
             labels.forEach { self.labels.append(LabelItemViewModel(label: $0)) }
         }
     }
+}
 
+// MARK: - LabelListViewModelOutputs Implementation
+
+extension LabelListViewModel: LabelListViewModelOutputs {
+    var labelPublisher: Published<[LabelItemViewModel]>.Publisher { $labels }
+}
+
+// MARK: - LabelListViewModelType Implementation
+
+extension LabelListViewModel: LabelListViewModelTypes {
     var inputs: LabelListViewModelInputs { self }
     var outputs: LabelListViewModelOutputs { self }
 }
