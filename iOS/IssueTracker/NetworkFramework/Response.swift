@@ -42,9 +42,7 @@ public extension Response {
         request: URLRequest,
         data: Data?,
         error: Error?
-    )
-        -> Result<Response, NetworkError>
-    {
+    ) -> Result<Response, NetworkError> {
         let response = response as? HTTPURLResponse
         switch (response, data, error) {
         case let (.some(response), data, .none):
