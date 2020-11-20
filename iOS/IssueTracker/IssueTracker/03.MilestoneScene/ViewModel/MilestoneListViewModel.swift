@@ -22,7 +22,7 @@ class MilestoneListViewModel: MilestoneListViewModelProtocol {
     private var milestones = [MilestoneItemViewModel]()
     private var milestoneProvider: MilestoneProvidable?
 
-    init(with milestoneProvider: MilestoneProvidable) {
+    init(with milestoneProvider: MilestoneProvidable = MilestoneProvider.shared) {
         self.milestoneProvider = milestoneProvider
     }
 

@@ -58,7 +58,12 @@ class IssueDetailViewModel: IssueDetailViewModelProtocol {
     private weak var labelProvier: LabelProvidable?
     private weak var milestoneProvider: MilestoneProvidable?
 
-    init(id: Int, issueProvider: IssueProvidable?, labelProvier: LabelProvidable?, milestoneProvider: MilestoneProvidable?) {
+    init(
+        id: Int,
+        issueProvider: IssueProvidable? = IssueProvider.shared,
+        labelProvier: LabelProvidable? = LabelProvider.shared,
+        milestoneProvider: MilestoneProvidable? = MilestoneProvider.shared
+    ) {
         issueNumber = id
         self.issueProvider = issueProvider
         self.labelProvier = labelProvier

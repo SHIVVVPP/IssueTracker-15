@@ -30,7 +30,7 @@ class LabelListViewModel: LabelListViewModelType, LabelListViewModelInputs, Labe
     var labelPublisher: Published<[LabelItemViewModel]>.Publisher { $labels }
     @Published private var labels: [LabelItemViewModel]
 
-    init(with labelProvider: LabelProvidable) {
+    init(with labelProvider: LabelProvidable = LabelProvider.shared) {
         self.labelProvider = labelProvider
         labels = []
     }

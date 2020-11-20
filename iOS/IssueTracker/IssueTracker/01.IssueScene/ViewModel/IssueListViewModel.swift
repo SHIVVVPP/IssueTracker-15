@@ -59,7 +59,12 @@ class IssueListViewModel: IssueListViewModelProtocol {
         }
     }
 
-    init(labelProvider: LabelProvidable, milestoneProvider: MilestoneProvidable, issueProvider: IssueProvidable, issueFilter: IssueFilterable? = IssueFilter()) {
+    init(
+        labelProvider: LabelProvidable = LabelProvider.shared,
+        milestoneProvider: MilestoneProvidable = MilestoneProvider.shared,
+        issueProvider: IssueProvidable = IssueProvider.shared,
+        issueFilter: IssueFilterable? = IssueFilter()
+    ) {
         self.labelProvider = labelProvider
         self.milestoneProvider = milestoneProvider
         self.issueProvider = issueProvider

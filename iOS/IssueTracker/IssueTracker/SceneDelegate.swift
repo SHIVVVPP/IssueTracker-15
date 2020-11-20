@@ -12,21 +12,15 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
-    var dataLoader: DataLoader?
-    var userProvider: UserProvidable?
-
     func scene(_: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         if let url = URLContexts.first?.url {
             let code = url.absoluteString.components(separatedBy: "code=").last ?? ""
-            userProvider?.requestAccessToken(code: code, completion: { result in
-                guard let window = self.window,
-                      let dataLodaer = self.dataLoader,
-                      let userProvider = self.userProvider
-                else { return }
+            UserProvider.shared.requestAccessToken(code: code, completion: { result in
+                guard let window = self.window else { return }
                 switch result {
                 case .success:
                     UIView.transition(with: window, duration: 1, options: .transitionFlipFromTop, animations: {
-                        window.rootViewController = MainTabBarController.createViewController(dataLoader: dataLodaer, userProvider: userProvider)
+                        window.rootViewController = MainTabBarController.createViewController()
                         window.makeKeyAndVisible()
                     }, completion: nil)
                 case .failure:
@@ -36,21 +30,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
     }
 
-    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options _: UIScene.ConnectionOptions) {
+    func scene(_ scene: UIScene, willConnectTo _: UISceneSession, options _: UIScene.ConnectionOptions) {
         guard (scene as? UIWindowScene) != nil else { return }
-
-        let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
-        dataLoader = DataLoader(session: session)
 
         let rootViewController: UIViewController?
         if
             let data = UserDefaults.standard.object(forKey: "AccessToken") as? Data,
             let accessToken = JSONDecoder.decode(TokenResponse.self, from: data)
         {
-            userProvider = UserProvider(dataLoader: dataLoader!, tokenData: accessToken)
-            rootViewController = MainTabBarController.createViewController(dataLoader: dataLoader!, userProvider: userProvider!)
+            UserProvider.shared.currentUser = accessToken.user
+            UserProvider.shared.token = accessToken.accessToken
+            rootViewController = MainTabBarController.createViewController()
         } else {
-            userProvider = UserProvider(dataLoader: dataLoader!)
             rootViewController = LoginViewController.createViewController()
         }
 

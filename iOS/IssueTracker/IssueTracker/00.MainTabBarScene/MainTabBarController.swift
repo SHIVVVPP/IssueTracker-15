@@ -10,34 +10,6 @@ import NetworkFramework
 import UIKit
 
 class MainTabBarController: UITabBarController {
-    private weak var dataLoader: DataLoadable?
-
-    private var labelProvider: LabelProvidable
-    private var milestoneProvider: MilestoneProvidable
-    private var issueProvider: IssueProvidable
-
-    init?(coder: NSCoder, dataLoader: DataLoadable, userProvider: UserProvidable) {
-        self.dataLoader = dataLoader
-        issueProvider = IssueProvider(dataLoader: dataLoader, userProvider: userProvider)
-        labelProvider = LabelProvider(dataLoader: dataLoader, userProvider: userProvider)
-        milestoneProvider = MilestoneProvider(dataLoader: dataLoader, userProvider: userProvider)
-
-        super.init(coder: coder)
-
-        setupSubViewControllers()
-    }
-
-    required init?(coder: NSCoder) {
-        let dataLoader = DataLoader(session: URLSession.shared)
-        let userProvider = UserProvider(dataLoader: dataLoader)
-        issueProvider = IssueProvider(dataLoader: dataLoader, userProvider: userProvider)
-        labelProvider = LabelProvider(dataLoader: dataLoader, userProvider: userProvider)
-        milestoneProvider = MilestoneProvider(dataLoader: dataLoader, userProvider: userProvider)
-        self.dataLoader = dataLoader
-
-        super.init(coder: coder)
-    }
-
     func setupSubViewControllers() {
         let commonAppearance = UINavigationBarAppearance()
         commonAppearance.backgroundColor = .white
@@ -50,10 +22,7 @@ class MainTabBarController: UITabBarController {
         {
             navigationController.navigationBar.scrollEdgeAppearance = commonAppearance
 
-            let issueListViewModel = IssueListViewModel(labelProvider: labelProvider,
-                                                        milestoneProvider: milestoneProvider,
-                                                        issueProvider: issueProvider)
-
+            let issueListViewModel = IssueListViewModel()
             issueListViewController.issueListViewModel = issueListViewModel
         }
         // controllers[1] = LabelListViewController
@@ -63,7 +32,7 @@ class MainTabBarController: UITabBarController {
         {
             navigationController.navigationBar.scrollEdgeAppearance = commonAppearance
 
-            labelListViewController.labelListViewModel = LabelListViewModel(with: labelProvider)
+            labelListViewController.labelListViewModel = LabelListViewModel()
         }
         // controllers[2] = MilestoneListViewConroller
         if
@@ -71,7 +40,7 @@ class MainTabBarController: UITabBarController {
             let milestoneListViewController = navigationController.topViewController as? MilestoneListViewController
         {
             navigationController.navigationBar.scrollEdgeAppearance = commonAppearance
-            milestoneListViewController.milestoneListViewModel = MilestoneListViewModel(with: milestoneProvider)
+            milestoneListViewController.milestoneListViewModel = MilestoneListViewModel()
         }
         // controllers[3] = SettingViewController
     }
@@ -84,13 +53,10 @@ class MainTabBarController: UITabBarController {
 extension MainTabBarController {
     static let storyBoardName = "Main"
 
-    static func createViewController(dataLoader: DataLoadable, userProvider: UserProvidable) -> UIViewController? {
+    static func createViewController() -> UIViewController? {
         let storyBoard = UIStoryboard(name: storyBoardName, bundle: Bundle.main)
-
-        let mainTabBarController = storyBoard.instantiateInitialViewController { (coder) -> UIViewController? in
-            MainTabBarController(coder: coder, dataLoader: dataLoader, userProvider: userProvider)
-        }
-
+        let mainTabBarController = storyBoard.instantiateInitialViewController() as? MainTabBarController
+        mainTabBarController?.setupSubViewControllers()
         return mainTabBarController
     }
 }
