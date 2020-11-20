@@ -16,6 +16,8 @@ public protocol DataLoadable: AnyObject {
 }
 
 public class DataLoader: DataLoadable {
+    public static let shared = DataLoader(session: URLSession.shared)
+
     private let session: URLSession
 
     public init(session: URLSession) {

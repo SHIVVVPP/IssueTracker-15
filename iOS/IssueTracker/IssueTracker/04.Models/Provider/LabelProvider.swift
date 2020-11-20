@@ -22,14 +22,17 @@ protocol LabelProvidable: AnyObject {
 }
 
 class LabelProvider: LabelProvidable {
+    static let shared = LabelProvider()
+
     private(set) var labels = [Int: Label]()
+
     private weak var dataLoader: DataLoadable?
     private weak var userProvider: UserProvidable?
 
     private var onFetching = false
     private var fetchingCompletionHandlers = [Int: ([Label]?) -> Void]()
 
-    init(dataLoader: DataLoadable, userProvider: UserProvidable) {
+    init(dataLoader: DataLoadable = DataLoader.shared, userProvider: UserProvidable = UserProvider.shared) {
         self.dataLoader = dataLoader
         self.userProvider = userProvider
     }

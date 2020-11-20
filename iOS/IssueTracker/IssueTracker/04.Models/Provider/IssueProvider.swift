@@ -33,6 +33,8 @@ protocol IssueProvidable: AnyObject {
 }
 
 class IssueProvider: IssueProvidable {
+    static let shared = IssueProvider()
+
     private var lastUpdated: Date?
     private var needFetch: Bool {
         guard let lastUpdated = self.lastUpdated else { return true }
@@ -53,7 +55,7 @@ class IssueProvider: IssueProvidable {
         userProvider?.currentUser
     }
 
-    init(dataLoader: DataLoadable, userProvider: UserProvidable) {
+    init(dataLoader: DataLoadable = DataLoader.shared, userProvider: UserProvidable = UserProvider.shared) {
         self.dataLoader = dataLoader
         self.userProvider = userProvider
     }

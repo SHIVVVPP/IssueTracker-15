@@ -19,6 +19,8 @@ protocol MilestoneProvidable: AnyObject {
 }
 
 class MilestoneProvider: MilestoneProvidable {
+    static let shared = MilestoneProvider()
+
     private(set) var milestons = [Int: Milestone]()
     private weak var dataLoader: DataLoadable?
     private weak var userProvider: UserProvidable?
@@ -26,7 +28,7 @@ class MilestoneProvider: MilestoneProvidable {
     private var onFetching = false
     private var fetchingCompletionHandlers = [Int: ([Milestone]?) -> Void]()
 
-    init(dataLoader: DataLoadable, userProvider: UserProvidable) {
+    init(dataLoader: DataLoadable = DataLoader.shared, userProvider: UserProvidable = UserProvider.shared) {
         self.dataLoader = dataLoader
         self.userProvider = userProvider
     }

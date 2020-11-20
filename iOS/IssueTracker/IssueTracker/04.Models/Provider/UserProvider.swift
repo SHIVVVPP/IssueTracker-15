@@ -18,6 +18,8 @@ protocol UserProvidable: AnyObject {
 }
 
 class UserProvider: UserProvidable {
+    static let shared = UserProvider()
+
     var token: String?
     var currentUser: User?
 
@@ -25,11 +27,11 @@ class UserProvider: UserProvidable {
 
     private weak var dataLoader: DataLoadable?
 
-    init(dataLoader: DataLoadable) {
+    init(dataLoader: DataLoadable = DataLoader.shared) {
         self.dataLoader = dataLoader
     }
 
-    init(dataLoader: DataLoadable, tokenData: TokenResponse) {
+    init(dataLoader: DataLoadable = DataLoader.shared, tokenData: TokenResponse) {
         self.dataLoader = dataLoader
         token = tokenData.accessToken
         currentUser = tokenData.user
