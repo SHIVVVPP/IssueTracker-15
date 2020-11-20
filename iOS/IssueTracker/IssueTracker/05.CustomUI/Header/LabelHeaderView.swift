@@ -9,15 +9,14 @@
 import UIKit
 
 class HeaderView: UICollectionReusableView {
-    @IBOutlet weak var headerLabel: UILabel!
-    
+    @IBOutlet var headerLabel: UILabel!
+
     func configure(title: String) {
         headerLabel.text = title
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         headerLabel.font = headerLabel.font.withSize(headerLabel.bounds.height)
     }
-
 }

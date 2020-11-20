@@ -11,7 +11,7 @@ import Foundation
 protocol IssueFilterViewModelProtocol: AnyObject {
     var generalConditions: [Bool] { get }
     var detailConditions: [Int] { get }
-    
+
     func generalConditionSelected(at type: Condition)
     func detailConditionSelected(at type: DetailSelectionType, id: Int?)
     func condition(of type: Condition) -> Bool
@@ -20,42 +20,43 @@ protocol IssueFilterViewModelProtocol: AnyObject {
 }
 
 class IssueFilterViewModel: IssueFilterViewModelProtocol {
-    
     private weak var labelProvider: LabelProvidable?
     private weak var milestoneProvider: MilestoneProvidable?
     private weak var issueProvider: IssueProvidable?
-    
+
     private(set) var generalConditions: [Bool]
     private(set) var detailConditions: [Int]
-    
-    init(labelProvider: LabelProvidable?,
-         milestoneProvider: MilestoneProvidable?,
-         issueProvider: IssueProvidable?,
-         generalConditions: [Bool],
-         detailConditions: [Int] ) {
+
+    init(
+        labelProvider: LabelProvidable?,
+        milestoneProvider: MilestoneProvidable?,
+        issueProvider: IssueProvidable?,
+        generalConditions: [Bool],
+        detailConditions: [Int]
+    ) {
         self.generalConditions = generalConditions
         self.detailConditions = detailConditions
         self.labelProvider = labelProvider
         self.milestoneProvider = milestoneProvider
         self.issueProvider = issueProvider
     }
-    
+
     func generalConditionSelected(at type: Condition) {
         generalConditions[type.rawValue] = !generalConditions[type.rawValue]
     }
-    
+
     func detailConditionSelected(at type: DetailSelectionType, id: Int?) {
         detailConditions[type.rawValue] = id ?? -1
     }
-    
+
     func condition(of type: Condition) -> Bool {
         return generalConditions[type.rawValue]
     }
-    
+
     func detailCondition(of type: DetailSelectionType) -> CellComponentViewModel? {
         let id = detailConditions[type.rawValue]
         if id == -1 { return nil }
-        
+
         switch type {
         case .assignee, .writer:
             guard let user = issueProvider?.users[id] else { return nil }
@@ -68,7 +69,7 @@ class IssueFilterViewModel: IssueFilterViewModelProtocol {
             return CellComponentViewModel(milestone: milestone)
         }
     }
-    
+
     func detailConditionDataSource(of type: DetailSelectionType) -> [[CellComponentViewModel]] {
         var viewModels: [[CellComponentViewModel]] = [[], []]
         switch type {
@@ -98,5 +99,4 @@ class IssueFilterViewModel: IssueFilterViewModelProtocol {
         }
         return viewModels
     }
-    
 }

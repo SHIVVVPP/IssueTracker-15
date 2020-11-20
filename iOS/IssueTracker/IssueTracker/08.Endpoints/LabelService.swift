@@ -10,38 +10,36 @@ import Foundation
 import NetworkFramework
 
 enum LabelService {
-    
     // [GET] /api/label
     case fetchAll
-    
+
     // createLabel( title, description, colorCode)
     // [POST] /api/label
-    case createLabel( String, String, String)
-    
+    case createLabel(String, String, String)
+
     // editLabel( Id, title, description, colorCode)
     // [PATCH] /api/label/:id
-    case editLabel( Int, String, String, String)
-    
+    case editLabel(Int, String, String, String)
+
     // deleteLabel( Id)
     // [DELETE] /api/label/:id
-    case deleteLabel( Int)
+    case deleteLabel(Int)
 }
 
 extension LabelService: IssueTrackerService {
-    
     var path: String {
         switch self {
         case .fetchAll, .createLabel:
             return "/api/label"
-        case .editLabel(let id, _, _, _), .deleteLabel(let id):
+        case let .editLabel(id, _, _, _), let .deleteLabel(id):
             return "/api/label/\(id)"
         }
     }
-    
+
     var queryItems: [String: String]? {
         return nil
     }
-    
+
     var method: HTTPMethod {
         switch self {
         case .fetchAll:
@@ -54,18 +52,18 @@ extension LabelService: IssueTrackerService {
             return .delete
         }
     }
-    
+
     var task: Task {
         switch self {
         case .fetchAll:
             return .requestPlain
-        case .createLabel(let title, let description, let colorCode):
+        case let .createLabel(title, description, colorCode):
             var jsonObject = [String: Any]()
             jsonObject["title"] = title
             jsonObject["description"] = description
             jsonObject["color"] = colorCode
             return .requestJsonObject(jsonObject)
-        case .editLabel(_, let title, let description, let colorCode):
+        case let .editLabel(_, title, description, colorCode):
             var jsonObject = [String: Any]()
             jsonObject["title"] = title
             jsonObject["description"] = description
@@ -75,7 +73,7 @@ extension LabelService: IssueTrackerService {
             return .requestPlain
         }
     }
-    
+
     var validationType: ValidationType {
         switch self {
         case .fetchAll:
@@ -88,9 +86,8 @@ extension LabelService: IssueTrackerService {
             return .custom([204])
         }
     }
-    
+
     var headers: [String: String]? {
         return nil
     }
-    
 }

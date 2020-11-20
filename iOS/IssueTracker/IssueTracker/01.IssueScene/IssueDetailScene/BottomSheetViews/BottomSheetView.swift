@@ -18,30 +18,29 @@ protocol BottomSheetViewDelegate: AnyObject {
 }
 
 class BottomSheetView: UIView {
-    
     weak var delegate: BottomSheetViewDelegate?
-    @IBOutlet weak var barView: UIView!
-    @IBOutlet weak var addCommentButton: UIButton!
-    @IBOutlet weak var upButton: UIButton!
-    @IBOutlet weak var downButton: UIButton!
-    @IBOutlet weak var tableView: UITableView!
+    @IBOutlet var barView: UIView!
+    @IBOutlet var addCommentButton: UIButton!
+    @IBOutlet var upButton: UIButton!
+    @IBOutlet var downButton: UIButton!
+    @IBOutlet var tableView: UITableView!
     private var labelsCollectionViewCell: BottomSheetLabelCollectionView?
-    
+
     private weak var issueDetailViewModel: IssueDetailViewModelProtocol?
-    
+
     var fullView: CGFloat = 100
     var partialView: CGFloat {
         return UIScreen.main.bounds.height
-            - (addCommentButton.frame.maxY + (self.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0))
+            - (addCommentButton.frame.maxY + (window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0))
     }
-    
+
     func configure(issueDetailViewModel: IssueDetailViewModelProtocol?) {
         self.issueDetailViewModel = issueDetailViewModel
         self.issueDetailViewModel?.didMilestoneChanged = reloadData
         self.issueDetailViewModel?.didLabelChanged = reloadData
         self.issueDetailViewModel?.didAssigneeChanged = reloadData
     }
-    
+
     override func awakeFromNib() {
         super.awakeFromNib()
         configureGesture()
@@ -50,55 +49,55 @@ class BottomSheetView: UIView {
         tableView.layer.masksToBounds = false
         tableView.backgroundColor = .clear
     }
-    
+
     private func configureGesture() {
-        let gesture = UIPanGestureRecognizer.init(target: self, action: #selector(self.panGesture))
-        self.addGestureRecognizer(gesture)
+        let gesture = UIPanGestureRecognizer(target: self, action: #selector(panGesture))
+        addGestureRecognizer(gesture)
     }
-    
+
     override func layoutSubviews() {
-        delegate?.heightChanged(with: self.frame.minY)
+        delegate?.heightChanged(with: frame.minY)
     }
-    
 }
 
 // MARK: - Action
+
 extension BottomSheetView {
     func reloadData() {
         tableView.reloadData()
     }
-    
-    @IBAction func addCommentButtonTapped(_ sender: Any) {
+
+    @IBAction func addCommentButtonTapped(_: Any) {
         delegate?.addCommentButtonTapped()
     }
-    
-    @IBAction func upButtonTapped(_ sender: Any) {
+
+    @IBAction func upButtonTapped(_: Any) {
         delegate?.upButtonTapped()
     }
-    
-    @IBAction func downButtonTapped(_ sender: Any) {
+
+    @IBAction func downButtonTapped(_: Any) {
         delegate?.downButtonTapped()
     }
-    
+
     private func stateToggleButtonTapped() {
         delegate?.stateToggleButtonTapped()
     }
-    
+
     @objc func panGesture(_ recognizer: UIPanGestureRecognizer) {
         let translation = recognizer.translation(in: self)
         let velocity = recognizer.velocity(in: self)
-        let y = self.frame.minY
-        
-        if (y + translation.y >= fullView) && (y + translation.y <= partialView ) {
-            self.frame = CGRect(x: 0, y: y + translation.y, width: self.frame.width, height: self.frame.height)
+        let y = frame.minY
+
+        if y + translation.y >= fullView, y + translation.y <= partialView {
+            frame = CGRect(x: 0, y: y + translation.y, width: frame.width, height: frame.height)
             recognizer.setTranslation(CGPoint.zero, in: self)
         }
-        
+
         if recognizer.state == .ended {
-            var duration = velocity.y < 0 ? Double((y - fullView) / -velocity.y) : Double((partialView - y) / velocity.y )
-            
+            var duration = velocity.y < 0 ? Double((y - fullView) / -velocity.y) : Double((partialView - y) / velocity.y)
+
             duration = duration > 1.3 ? 1 : duration
-            
+
             UIView.animate(withDuration: duration, delay: 0.0, options: [.allowUserInteraction], animations: {
                 if velocity.y >= 0 {
                     self.frame = CGRect(x: 0, y: self.partialView, width: self.frame.width, height: self.frame.height)
@@ -107,16 +106,13 @@ extension BottomSheetView {
                 }
             }, completion: nil)
         }
-        
     }
-    
 }
 
 // MARK: - UITableViewDelegate Implementation
 
 extension BottomSheetView: UITableViewDelegate {
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         guard section < 3 else { return nil }
         let headerView = BottomSheetHeaderView.createView()
         headerView?.configure(type: TableViewConstant.headerTitles[section])
@@ -125,27 +121,25 @@ extension BottomSheetView: UITableViewDelegate {
         }
         return headerView
     }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+
+    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section != 3 { return }
         stateToggleButtonTapped()
     }
-    
 }
 
 // MARK: - UITableViewDataSource Implementation
 
 extension BottomSheetView: UITableViewDataSource {
-    
     enum TableViewConstant {
         static let headerTitles = [DetailSelectionType.assignee, DetailSelectionType.label, DetailSelectionType.milestone]
     }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
+
+    func numberOfSections(in _: UITableView) -> Int {
         return 4
     }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+    func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0:
             return issueDetailViewModel?.assignees.count ?? 0
@@ -160,8 +154,8 @@ extension BottomSheetView: UITableViewDataSource {
             return 0
         }
     }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+    func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: UITableViewCell?
         switch indexPath.section {
         case 0:
@@ -177,8 +171,8 @@ extension BottomSheetView: UITableViewDataSource {
         }
         return cell ?? UITableViewCell()
     }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+
+    func tableView(_: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         switch indexPath.section {
         case 1:
             labelsCollectionViewCell?.layoutIfNeeded()
@@ -187,7 +181,7 @@ extension BottomSheetView: UITableViewDataSource {
             return UITableView.automaticDimension
         }
     }
-    
+
     private func createAssigneeCell(indexPath: IndexPath) -> UITableViewCell? {
         guard let userComponentView = UserInfoComponentView.createView(),
               let userViewModel = issueDetailViewModel?.assignees[safe: indexPath.row]
@@ -199,16 +193,16 @@ extension BottomSheetView: UITableViewDataSource {
             userComponentView.leadingAnchor.constraint(equalTo: cell.leadingAnchor),
             userComponentView.topAnchor.constraint(equalTo: cell.topAnchor),
             userComponentView.bottomAnchor.constraint(equalTo: cell.bottomAnchor),
-            userComponentView.heightAnchor.constraint(equalTo: cell.widthAnchor, multiplier: 0.13)
+            userComponentView.heightAnchor.constraint(equalTo: cell.widthAnchor, multiplier: 0.13),
         ])
         userComponentView.configure(viewModel: CellComponentViewModel(title: userViewModel.userName, element: userViewModel.imageURL))
         cell.selectionStyle = .none
         return cell
     }
-    
+
     private func createLabelCollectionCell() -> UITableViewCell? {
         guard let labelViewModels = issueDetailViewModel?.labels else { return nil }
-        
+
         let cell: BottomSheetLabelCollectionView
         if let labelsCollectionViewCell = self.labelsCollectionViewCell {
             cell = labelsCollectionViewCell
@@ -222,7 +216,7 @@ extension BottomSheetView: UITableViewDataSource {
         cell.selectionStyle = .none
         return cell
     }
-    
+
     private func createMilestoneCell() -> UITableViewCell? {
         guard let cell = BottomSheetMilestoneView.createView(),
               let milestoneViewModel = issueDetailViewModel?.milestone
@@ -231,7 +225,7 @@ extension BottomSheetView: UITableViewDataSource {
         cell.selectionStyle = .none
         return cell
     }
-    
+
     private func createCloseOpenButtonCell() -> UITableViewCell? {
         guard let isOpened = issueDetailViewModel?.isOpened else { return nil }
         let cell = UITableViewCell()
@@ -242,13 +236,13 @@ extension BottomSheetView: UITableViewDataSource {
         cell.backgroundColor = UIColor.clear
         return cell
     }
-    
 }
 
 // MARK: - loadNIB extension
+
 extension BottomSheetView {
     static let identifier = "BottomSheetView"
-    
+
     static func createView() -> BottomSheetView? {
         return Bundle.main.loadNibNamed(BottomSheetView.identifier, owner: self, options: nil)?.last as? BottomSheetView
     }

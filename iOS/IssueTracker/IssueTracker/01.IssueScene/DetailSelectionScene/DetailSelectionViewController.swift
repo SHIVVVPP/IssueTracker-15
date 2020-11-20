@@ -9,93 +9,86 @@
 import UIKit
 
 class DetailSelectionViewController: UIViewController {
-    
-    @IBOutlet weak var titleNavItem: UINavigationItem!
+    @IBOutlet var titleNavItem: UINavigationItem!
 
     var onSelectionComplete: (([CellComponentViewModel]) -> Void)?
-    
+
     private var viewModel: DetailSelectionViewModelProtocol
-    
-    @IBOutlet weak var tableView: UITableView!
-    
+
+    @IBOutlet var tableView: UITableView!
+
     init(nibName: String, bundle: Bundle?, viewModel: DetailSelectionViewModelProtocol) {
         self.viewModel = viewModel
         super.init(nibName: nibName, bundle: bundle)
         configureViewModel()
     }
-    
+
     private func configureViewModel() {
-        viewModel.didChanged = { (from, to) in
+        viewModel.didChanged = { from, to in
             guard let cell = self.tableView.cellForRow(at: from) as? DetailConditionSelectCellView else { return }
             self.tableView.moveRow(at: from, to: to)
             cell.setCheck(to.section == 0)
         }
     }
-    
+
     required init?(coder: NSCoder) {
-        self.viewModel = DetailSelectionViewModel(detailCondition: .writer, viewModelDataSource: [[], []], maxSelection: 0)
+        viewModel = DetailSelectionViewModel(detailCondition: .writer, viewModelDataSource: [[], []], maxSelection: 0)
         super.init(coder: coder)
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         configureTableView()
         titleNavItem.title = title
     }
-    
+
     private func configureTableView() {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(type: DetailConditionSelectCellView.self)
     }
-    
 }
 
 // MARK: - Actions
 
 extension DetailSelectionViewController {
-    
-    @IBAction func cancelButtonTapped(_ sender: Any) {
+    @IBAction func cancelButtonTapped(_: Any) {
         dismiss(animated: true, completion: nil)
     }
-    
-    @IBAction func doneButtonTapped(_ sender: Any) {
+
+    @IBAction func doneButtonTapped(_: Any) {
         dismiss(animated: true, completion: nil)
         onSelectionComplete?(viewModel.result)
     }
-    
 }
 
 // MARK: - UITableViewDelegate Implementation
 
 extension DetailSelectionViewController: UITableViewDelegate {
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         viewModel.select(at: indexPath)
     }
-    
 }
 
 // MARK: - UITableViewDataSource Implementation
 
 extension DetailSelectionViewController: UITableViewDataSource {
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in _: UITableView) -> Int {
         return 2
     }
-    
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+
+    func tableView(_: UITableView, titleForHeaderInSection section: Int) -> String? {
         return section == 0 ? "chosen" : "unchosen"
     }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+    func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         return viewModel.numberOfDatas(at: section)
     }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+
+    func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
         return view.bounds.height / 14
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell: DetailConditionSelectCellView = tableView.dequeueCell(at: indexPath)
         else { return UITableViewCell() }
@@ -103,18 +96,15 @@ extension DetailSelectionViewController: UITableViewDataSource {
         cell.setCheck(indexPath.section == 0)
         return cell
     }
-    
 }
 
 // MARK: - Load From Nib
 
 extension DetailSelectionViewController {
-    
     static let nibName = "DetailSelectionViewController"
-    
+
     static func createViewController(with viewModel: DetailSelectionViewModelProtocol) -> DetailSelectionViewController {
         let vc = DetailSelectionViewController(nibName: nibName, bundle: Bundle.main, viewModel: viewModel)
         return vc
     }
-    
 }

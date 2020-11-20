@@ -9,20 +9,19 @@
 import Foundation
 
 public typealias Completion = (_ result: Result<Response, NetworkError>) -> Void
-public typealias RequestCompletion =  (Data?, URLResponse?, Error?) -> Void
+public typealias RequestCompletion = (Data?, URLResponse?, Error?) -> Void
 
 public protocol DataLoadable: AnyObject {
     func request(_ target: Target, callBackQueue: DispatchQueue?, completion: @escaping Completion)
 }
 
 public class DataLoader: DataLoadable {
-    
     private let session: URLSession
-    
+
     public init(session: URLSession) {
         self.session = session
     }
-    
+
     public func request(_ target: Target, callBackQueue: DispatchQueue? = .none, completion: @escaping Completion) {
         let endPoint: EndPoint
         do {
@@ -31,18 +30,18 @@ public class DataLoader: DataLoadable {
             completion(.failure(NetworkError.endPointMaappingError("endpoint mapping error")))
             return
         }
-        
+
         let urlRequest: URLRequest
         switch endPoint.urlRequest() {
-        case .success(let request):
+        case let .success(request):
             urlRequest = request
-        case .failure(let error):
+        case let .failure(error):
             completion(.failure(error))
             return
         }
-        let completionHandler: RequestCompletion = { ( data, response, error) in
+        let completionHandler: RequestCompletion = { data, response, error in
             let result = Response.convertToResponse(response: response, request: urlRequest, data: data, error: error)
-            
+
             if let callBackQueue = callBackQueue {
                 callBackQueue.async {
                     completion(result)
@@ -51,9 +50,8 @@ public class DataLoader: DataLoadable {
                 completion(result)
             }
         }
-        
+
         let task = session.dataTask(with: urlRequest, completionHandler: completionHandler)
         task.resume()
     }
-    
 }

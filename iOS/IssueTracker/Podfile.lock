@@ -1,20 +1,24 @@
 PODS:
   - MarkdownView (1.7.1)
+  - SwiftFormat/CLI (0.47.4)
   - SwiftLint (0.40.3)
 
 DEPENDENCIES:
   - MarkdownView
+  - SwiftFormat/CLI
   - SwiftLint
 
 SPEC REPOS:
   trunk:
     - MarkdownView
+    - SwiftFormat
     - SwiftLint
 
 SPEC CHECKSUMS:
   MarkdownView: cf30a97ab39b2bce04406adce541972c882363bd
+  SwiftFormat: 43c9302b7dbca1cda59acfc2ac63ac86e281fb14
   SwiftLint: dfd554ff0dff17288ee574814ccdd5cea85d76f7
 
-PODFILE CHECKSUM: b2ec70e574a9c46c5af330d66d871aa337996327
+PODFILE CHECKSUM: 930e6c906dc25281c70131e16a944a8ff0def01e
 
 COCOAPODS: 1.9.3

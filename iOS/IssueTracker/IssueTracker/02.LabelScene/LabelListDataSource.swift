@@ -9,17 +9,16 @@
 import UIKit
 
 class LabelListDataSource: NSObject, UICollectionViewDataSource {
-    
     private(set) var datas: [LabelItemViewModel] = []
-    
+
     func load(labels: [LabelItemViewModel]) {
         datas = labels
     }
-    
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+
+    func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int {
         return datas.count
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard
             let cell: LabelCellView = collectionView.dequeueCell(at: indexPath),
@@ -30,6 +29,4 @@ class LabelListDataSource: NSObject, UICollectionViewDataSource {
         cell.configure(with: cellViewModel)
         return cell
     }
-    
 }
-

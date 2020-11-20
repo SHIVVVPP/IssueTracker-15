@@ -9,9 +9,7 @@
 import Foundation
 
 extension JSONDecoder {
-    
     static func decode<T: Decodable>(_ type: T.Type, from data: Data) -> T? {
         return try? JSONDecoder().decode(type, from: data)
     }
-    
 }

@@ -21,44 +21,42 @@ protocol IssueItemViewModelProtocol: AnyObject {
 }
 
 class IssueItemViewModel: IssueItemViewModelProtocol {
-    
     let id: Int
     let title: String
-    
+
     private(set) var isOpened: Bool
     private(set) var milestoneTitle: String = ""
     private(set) var labelItemViewModels = [LabelItemViewModel]()
-    
+
     var didMilestoneChanged: ((String) -> Void)?
     var didLabelsChanged: (([LabelItemViewModel]) -> Void)?
-    
+
     var checked: Bool = false
-    
+
     init(issue: Issue) {
         id = issue.id
         title = issue.title
         isOpened = issue.isOpened
     }
-    
+
     func setLabels(labels: [Label]?) {
         guard let labels = labels else { return }
         labelItemViewModels = labels.map { LabelItemViewModel(label: $0) }
         didLabelsChanged?(labelItemViewModels)
     }
-    
+
     func setMilestone(milestone: Milestone?) {
         guard let milestone = milestone else { return }
         milestoneTitle = milestone.title
         didMilestoneChanged?(milestoneTitle)
     }
-    
 }
 
 extension IssueItemViewModel: Hashable {
     static func == (lhs: IssueItemViewModel, rhs: IssueItemViewModel) -> Bool {
         return lhs.id == rhs.id
     }
-    
+
     func hash(into hasher: inout Hasher) {
         return hasher.combine(id)
     }

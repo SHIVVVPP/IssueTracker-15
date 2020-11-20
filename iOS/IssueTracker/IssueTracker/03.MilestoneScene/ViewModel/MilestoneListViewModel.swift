@@ -21,54 +21,53 @@ class MilestoneListViewModel: MilestoneListViewModelProtocol {
     var didFetch: (() -> Void)?
     private var milestones = [MilestoneItemViewModel]()
     private var milestoneProvider: MilestoneProvidable?
-    
+
     init(with milestoneProvider: MilestoneProvidable) {
         self.milestoneProvider = milestoneProvider
     }
-    
+
     func addNewMileStone(title: String, dueDate: String, description: String) {
-        
-        milestoneProvider?.addMilestone(title: title, dueDate: dueDate, description: description, completion: { [weak self] (milestone) in
+        milestoneProvider?.addMilestone(title: title, dueDate: dueDate, description: description, completion: { [weak self] milestone in
             guard let `self` = self,
-            let milestone = milestone
-                else { return }
+                  let milestone = milestone
+            else { return }
             self.milestones.insert(MilestoneItemViewModel(milestone: milestone, from: .fromServer), at: 0)
             DispatchQueue.main.async {
                 self.didFetch?()
             }
         })
     }
-    
+
     func editMileStone(at indexPath: IndexPath, title: String, description: String, dueDate: String) {
         let currentMilestone: MilestoneItemViewModel = milestones[indexPath.row]
-        
-        milestoneProvider?.editMilestone(id: currentMilestone.id, title: title, dueDate: dueDate, description: description, openIssuesLength: currentMilestone.openIssue, closeIssueLength: currentMilestone.closedIssue) { [weak self] (milestone) in
+
+        milestoneProvider?.editMilestone(id: currentMilestone.id, title: title, dueDate: dueDate, description: description, openIssuesLength: currentMilestone.openIssue, closeIssueLength: currentMilestone.closedIssue) { [weak self] milestone in
             guard let `self` = self,
-                let milestone = milestone
-                else { return }
+                  let milestone = milestone
+            else { return }
             self.milestones[indexPath.row] = MilestoneItemViewModel(milestone: milestone, from: .fromSubmitView)
             DispatchQueue.main.async {
                 self.didFetch?()
             }
         }
     }
-    
+
     func needFetchItems() {
-        milestoneProvider?.fetchMilestones { [weak self] (milestones) in
+        milestoneProvider?.fetchMilestones { [weak self] milestones in
             guard let `self` = self,
-                let milestones = milestones
-                else { return }
+                  let milestones = milestones
+            else { return }
             milestones.forEach { self.milestones.append(MilestoneItemViewModel(milestone: $0, from: .fromServer)) }
             DispatchQueue.main.async {
                 self.didFetch?()
             }
         }
     }
-    
+
     func cellForItemAt(path: IndexPath) -> MilestoneItemViewModel {
         return milestones[path.row]
     }
-    
+
     func numberOfItem() -> Int {
         milestones.count
     }

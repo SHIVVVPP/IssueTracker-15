@@ -13,7 +13,7 @@ enum Condition: Int, CaseIterable {
     case issueClosed = 1
     case issueFromMe = 2
     case issueAssignedToMe = 3
-    
+
     var title: String {
         switch self {
         case .issueOpened:
@@ -33,7 +33,7 @@ enum DetailSelectionType: Int, CaseIterable {
     case label = 1
     case milestone = 2
     case assignee = 3
-    
+
     var title: String {
         switch self {
         case .writer:
@@ -46,7 +46,7 @@ enum DetailSelectionType: Int, CaseIterable {
             return "담당자"
         }
     }
-    
+
     var cellStyle: ComponentStyle {
         switch self {
         case .writer, .assignee:

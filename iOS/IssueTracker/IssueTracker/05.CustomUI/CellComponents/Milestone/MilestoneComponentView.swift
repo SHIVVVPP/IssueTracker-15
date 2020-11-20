@@ -9,24 +9,21 @@
 import UIKit
 
 class MilestoneComponentView: UIView {
-    
-    @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var dueDateLabel: UILabel!
-    
+    @IBOutlet var titleLabel: UILabel!
+    @IBOutlet var dueDateLabel: UILabel!
+
     override func layoutSubviews() {
         super.layoutSubviews()
         titleLabel.autoResizeFontWithHeight()
         dueDateLabel.autoResizeFontWithHeight()
     }
-    
 }
 
 // MARK: - CellComponentProtocol Implementation
 
 extension MilestoneComponentView: CellComponentProtocol {
-    
     var contentView: UIView { self }
-    
+
     func configure(viewModel: CellComponentViewModel) {
         titleLabel.text = viewModel.title
         if let date = viewModel.element?.dateForServer {
@@ -38,11 +35,10 @@ extension MilestoneComponentView: CellComponentProtocol {
             dueDateLabel.text = "-"
         }
     }
-    
+
     func prepareForReuse() {
         dueDateLabel.textColor = .black
     }
-    
 }
 
 // MARK: - Load From Nib

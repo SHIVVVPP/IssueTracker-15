@@ -9,37 +9,36 @@
 import UIKit
 
 class SubmitFormViewController: UIViewController {
-    
     enum SaveResult {
         case success
         case failure(String)
     }
-    
+
     var formViewEndPoint: CGFloat?
     var moveUpward: CGFloat = 0
-    
-    @IBOutlet weak var backgroundView: UIView!
-    @IBOutlet weak var formView: UIView!
-    @IBOutlet weak var submitFieldGuideView: UIView!
-    
+
+    @IBOutlet var backgroundView: UIView!
+    @IBOutlet var formView: UIView!
+    @IBOutlet var submitFieldGuideView: UIView!
+
     private var submitField: SubmitFieldProtocol?
-    
+
     init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?, submitField: SubmitFieldProtocol) {
         self.submitField = submitField
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
-    
+
     required init?(coder: NSCoder) {
         super.init(coder: coder)
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         configureSubmitField()
         subscribeNotifications()
         configureTapGesture()
     }
-    
+
     private func configureSubmitField() {
         guard let submitField = submitField else { return }
         submitFieldGuideView.addSubview(submitField.contentView)
@@ -47,7 +46,7 @@ class SubmitFormViewController: UIViewController {
             submitField.contentView.topAnchor.constraint(equalTo: submitFieldGuideView.topAnchor),
             submitField.contentView.bottomAnchor.constraint(equalTo: submitFieldGuideView.bottomAnchor),
             submitField.contentView.leadingAnchor.constraint(equalTo: submitFieldGuideView.leadingAnchor),
-            submitField.contentView.trailingAnchor.constraint(equalTo: submitFieldGuideView.trailingAnchor)
+            submitField.contentView.trailingAnchor.constraint(equalTo: submitFieldGuideView.trailingAnchor),
         ])
     }
 }
@@ -55,14 +54,15 @@ class SubmitFormViewController: UIViewController {
 // MARK: - Action
 
 extension SubmitFormViewController {
-    
-    @IBAction func closeButtonTapped(_ sender: Any) {
+    @IBAction func closeButtonTapped(_: Any) {
         dismiss(animated: true, completion: nil)
     }
-    @IBAction func resetButtonTapped(_ sender: Any) {
+
+    @IBAction func resetButtonTapped(_: Any) {
         submitField?.resetButtonTapped()
     }
-    @IBAction func saveButtonTapped(_ sender: Any) {
+
+    @IBAction func saveButtonTapped(_: Any) {
         guard let submitField = self.submitField else {
             dismiss(animated: true, completion: nil)
             return
@@ -71,73 +71,71 @@ extension SubmitFormViewController {
         switch submitField.saveButtonTapped() {
         case .success:
             dismiss(animated: true, completion: nil)
-        case .failure(let message):
+        case let .failure(message):
             showAlert(at: self, title: message, prepare: moveFormViewDownward, completion: moveFormViewUpward)
         }
     }
 
     @objc func keyboardWillShowOrHide(notification: NSNotification) {
-        if let userInfo = notification.userInfo,
-            let keyboardValue = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as AnyObject).cgRectValue {
-            
+        if
+            let userInfo = notification.userInfo,
+            let keyboardValue = (userInfo[UIResponder.keyboardFrameEndUserInfoKey] as AnyObject).cgRectValue
+        {
             guard formViewEndPoint == nil else { return }
-            
-            let newEndPoint = self.formView.frame.origin.y + self.formView.frame.height
+
+            let newEndPoint = formView.frame.origin.y + formView.frame.height
             formViewEndPoint = newEndPoint
-            
+
             moveUpward = newEndPoint - keyboardValue.origin.y
             if newEndPoint > keyboardValue.origin.y {
                 formView.frame.origin.y -= moveUpward
             }
         }
     }
-    
+
     @objc func formViewTapped() {
-        self.view.endEditing(true)
-        self.formViewEndPoint = nil
+        view.endEditing(true)
+        formViewEndPoint = nil
         let finalPos = formView.frame.origin.y + moveUpward
-        
+
         UIView.animate(withDuration: 0.3, animations: {
             self.formView.frame.origin.y = finalPos
         }, completion: { _ in
             self.formView.frame.origin.y = finalPos
         })
 
-        self.moveUpward = 0
+        moveUpward = 0
     }
-    
+
     @objc func backgroundTapped() {
         dismiss(animated: true, completion: nil)
     }
-    
 }
 
 // MARK: - Private Function
 
 extension SubmitFormViewController {
-    
     private func configureTapGesture() {
         formView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(formViewTapped)))
         backgroundView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(backgroundTapped)))
     }
-    
+
     private func subscribeNotifications() {
-        self.subscribe(UIResponder.keyboardWillShowNotification, selector: #selector(keyboardWillShowOrHide))
-        self.subscribe(UIResponder.keyboardWillHideNotification, selector: #selector(keyboardWillShowOrHide))
+        subscribe(UIResponder.keyboardWillShowNotification, selector: #selector(keyboardWillShowOrHide))
+        subscribe(UIResponder.keyboardWillHideNotification, selector: #selector(keyboardWillShowOrHide))
     }
-    
+
     private func subscribe(_ notification: NSNotification.Name, selector: Selector) {
         NotificationCenter.default.addObserver(self, selector: selector, name: notification, object: nil)
     }
-    
+
     private func moveFormViewUpward() {
         formView.frame.origin.y -= moveUpward
     }
-    
+
     private func moveFormViewDownward() {
         formView.frame.origin.y += moveUpward
     }
-    
 }
 
 extension SubmitFormViewController {

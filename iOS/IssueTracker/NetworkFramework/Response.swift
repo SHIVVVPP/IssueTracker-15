@@ -13,7 +13,7 @@ public class Response {
     public let data: Data
     public let request: URLRequest?
     public let response: HTTPURLResponse?
-    
+
     public init(statusCode: Int, data: Data, request: URLRequest? = nil, response: HTTPURLResponse? = nil) {
         self.statusCode = statusCode
         self.data = data
@@ -22,25 +22,27 @@ public class Response {
     }
 }
 
-extension Response {
-    public func mapEncodable<T: Decodable>(_ type: T.Type) -> T? {
+public extension Response {
+    func mapEncodable<T: Decodable>(_ type: T.Type) -> T? {
         return try? JSONDecoder().decode(type, from: data)
     }
-    
-    public func mapJsonObject() -> [String: Any]? {
+
+    func mapJsonObject() -> [String: Any]? {
         return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
     }
-    
-    public func mapJsonArr() -> [[String: Any]]? {
+
+    func mapJsonArr() -> [[String: Any]]? {
         return try? JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]]
     }
 }
 
-extension Response {
-    public static func convertToResponse(response: URLResponse?,
-                                         request: URLRequest,
-                                         data: Data?,
-                                         error: Error?) -> Result<Response, NetworkError> {
+public extension Response {
+    static func convertToResponse(
+        response: URLResponse?,
+        request: URLRequest,
+        data: Data?,
+        error: Error?
+    ) -> Result<Response, NetworkError> {
         let response = response as? HTTPURLResponse
         switch (response, data, error) {
         case let (.some(response), data, .none):
@@ -61,22 +63,21 @@ extension Response {
 }
 
 extension Response: CustomDebugStringConvertible {
-    
     public var debugDescription: String {
         return """
-[Request]   URL         :   \(String(describing: request?.url?.absoluteString ?? ""))
-[Request]   Method      :   \(String(describing: request?.httpMethod ?? ""))
-[Request]   httpBody    :   \(String(describing: prettyJson(data: request?.httpBody)) )
-[Response]  statusCode  :   \(String(describing: response?.statusCode ?? 0))
-[Response]  httpBody    :   \(String(describing: prettyJson(data: data)))
-"""
+        [Request]   URL         :   \(String(describing: request?.url?.absoluteString ?? ""))
+        [Request]   Method      :   \(String(describing: request?.httpMethod ?? ""))
+        [Request]   httpBody    :   \(String(describing: prettyJson(data: request?.httpBody)))
+        [Response]  statusCode  :   \(String(describing: response?.statusCode ?? 0))
+        [Response]  httpBody    :   \(String(describing: prettyJson(data: data)))
+        """
     }
-    
+
     private func prettyJson(data: Data?) -> String {
         guard let data = data,
-            let jsonAny = try? JSONSerialization.jsonObject(with: data, options: [])
-            else { return  "{No Body}" }
-        
+              let jsonAny = try? JSONSerialization.jsonObject(with: data, options: [])
+        else { return "{No Body}" }
+
         let prettyJsonData: Data?
         if let jsonObject = jsonAny as? [String: Any] {
             prettyJsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
@@ -86,7 +87,7 @@ extension Response: CustomDebugStringConvertible {
             prettyJsonData = nil
         }
         let prettyJsonStr = String(data: prettyJsonData ?? Data(), encoding: .utf8) ?? ""
-        
+
         return prettyJsonStr.isEmpty ? "{No Body}" : prettyJsonStr
     }
 }

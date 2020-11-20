@@ -9,23 +9,22 @@
 import UIKit
 
 class DetailFilterCellView: UITableViewCell {
-    
     private var component: CellComponentProtocol?
-    
+
     func configure(style: ComponentStyle, viewModel: CellComponentViewModel?) {
         guard let viewModel = viewModel else {
             component?.contentView.removeFromSuperview()
             return
         }
-        
+
         if component == nil {
             configureComponent(type: style)
         }
-        
+
         component?.configure(viewModel: viewModel)
         layoutIfNeeded()
     }
-    
+
     private func configureComponent(type: ComponentStyle) {
         switch type {
         case .userInfo:
@@ -36,13 +35,12 @@ class DetailFilterCellView: UITableViewCell {
             component = LabelComponentView.createView()
         }
         guard let component = component else { return }
-        
+
         addSubview(component.contentView)
         NSLayoutConstraint.activate([
             component.contentView.topAnchor.constraint(equalTo: topAnchor, constant: 5),
             component.contentView.rightAnchor.constraint(equalTo: rightAnchor, constant: -50),
-            component.contentView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5)
+            component.contentView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5),
         ])
     }
-    
 }

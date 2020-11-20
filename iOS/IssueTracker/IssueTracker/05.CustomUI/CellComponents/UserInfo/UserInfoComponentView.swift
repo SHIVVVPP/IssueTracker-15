@@ -9,9 +9,8 @@
 import UIKit
 
 class UserInfoComponentView: UIView {
-
-    @IBOutlet weak var titleImage: UIImageView!
-    @IBOutlet weak var userNameLabel: UILabel!
+    @IBOutlet var titleImage: UIImageView!
+    @IBOutlet var userNameLabel: UILabel!
 
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -23,25 +22,23 @@ class UserInfoComponentView: UIView {
 // MARK: - CellComponentProtocol Implementation
 
 extension UserInfoComponentView: CellComponentProtocol {
-    
     var contentView: UIView { self }
-    
+
     func configure(viewModel: CellComponentViewModel) {
         userNameLabel.text = viewModel.title
-        viewModel.needImage { [weak self](data) in
+        viewModel.needImage { [weak self] data in
             self?.setImage(data: data)
         }
-        
+
         layoutIfNeeded()
     }
-    
+
     func setImage(data: Data?) {
         guard let data = data,
-            let image = UIImage(data: data)
+              let image = UIImage(data: data)
         else { return }
         titleImage.image = image
     }
-    
 }
 
 // MARK: - Load From Nib

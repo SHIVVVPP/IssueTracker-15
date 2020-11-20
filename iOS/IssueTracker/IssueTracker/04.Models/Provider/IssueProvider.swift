@@ -10,18 +10,17 @@ import Foundation
 import NetworkFramework
 
 protocol IssueProvidable: AnyObject {
-    
     var currentUser: User? { get }
     var users: [Int: User] { get }
-    
+
     func fetchIssues(completion: @escaping ([Issue]?) -> Void)
     func fetchIssues(with filter: IssueFilterable?, completion: @escaping ([Issue]?) -> Void)
-    
-    func addIssue(title: String, description: String, milestoneID: Int?, completion:  @escaping (Issue?) -> Void )
-    func editIssue(id: Int, title: String, description: String, completion:  @escaping (Issue?) -> Void)
+
+    func addIssue(title: String, description: String, milestoneID: Int?, completion: @escaping (Issue?) -> Void)
+    func editIssue(id: Int, title: String, description: String, completion: @escaping (Issue?) -> Void)
     func editTitle(id: Int, title: String, completion: @escaping (Issue?) -> Void)
     func deleteIssue(id: Int, completion: @escaping (Issue?) -> Void)
-    
+
     func getIssue(at id: Int, completion: @escaping (Issue?) -> Void)
     func changeIssueState(id: Int, open: Bool, completion: @escaping (Issue?) -> Void)
     func addLabel(at id: Int, of labelId: Int, completion: @escaping (Issue?) -> Void)
@@ -31,11 +30,9 @@ protocol IssueProvidable: AnyObject {
     func addAsignee(at id: Int, userId: Int, completion: @escaping (Issue?) -> Void)
     func deleteAsignee(at id: Int, userId: Int, completion: @escaping (Issue?) -> Void)
     func addComment(issueNumber: Int, content: String, completion: @escaping (Comment?) -> Void)
-    
 }
 
 class IssueProvider: IssueProvidable {
-    
     private var lastUpdated: Date?
     private var needFetch: Bool {
         guard let lastUpdated = self.lastUpdated else { return true }
@@ -43,38 +40,39 @@ class IssueProvider: IssueProvidable {
         let duration = Int(current.timeIntervalSince(lastUpdated))
         return duration > 30
     }
-    
+
     private weak var dataLoader: DataLoadable?
     private weak var userProvider: UserProvidable?
-    
+
     private(set) var issues = [Int: Issue]()
     var users: [Int: User] {
         return userProvider?.users ?? [:]
     }
+
     var currentUser: User? {
         userProvider?.currentUser
     }
-    
+
     init(dataLoader: DataLoadable, userProvider: UserProvidable) {
         self.dataLoader = dataLoader
         self.userProvider = userProvider
     }
-    
+
     func fetchIssues(completion: @escaping ([Issue]?) -> Void) {
         if !needFetch {
             completion(issues.map { $0.value })
             return
         }
         issues.removeAll()
-        
-        userProvider?.fetchUser { [weak self] (_) in
+
+        userProvider?.fetchUser { [weak self] _ in
             let group = DispatchGroup()
-            
-            let fetchWork: NetworkFramework.Completion = { [weak self] (response) in
+
+            let fetchWork: NetworkFramework.Completion = { [weak self] response in
                 switch response {
                 case .failure:
                     break
-                case .success(let response):
+                case let .success(response):
                     if let issues = Issue.fetchResponse(jsonArr: response.mapJsonArr()) {
                         issues.forEach {
                             self?.issues[$0.id] = $0
@@ -83,20 +81,19 @@ class IssueProvider: IssueProvidable {
                 }
                 group.leave()
             }
-            
+
             group.enter()
             self?.dataLoader?.request(IssueService.fetchAll(true), callBackQueue: .main, completion: fetchWork)
             group.enter()
             self?.dataLoader?.request(IssueService.fetchAll(false), callBackQueue: .main, completion: fetchWork)
-            
+
             group.notify(queue: .main) { [weak self] in
                 self?.lastUpdated = Date()
                 completion(self?.issues.map { $0.value })
             }
         }
-        
     }
-    
+
     func fetchIssues(with filter: IssueFilterable?, completion: @escaping ([Issue]?) -> Void) {
         let filterWork: ([Issue]?) -> Void = { [weak self] issues in
             guard let `self` = self else {
@@ -106,50 +103,50 @@ class IssueProvider: IssueProvidable {
             let issueDummy = issues ?? self.issues.map { $0.value }
             completion(filter?.filter(datas: issueDummy, user: self.currentUser))
         }
-        
+
         if needFetch {
             fetchIssues(completion: filterWork)
         } else {
             filterWork(issues.map { $0.value })
         }
     }
-  
+
     func addComment(issueNumber: Int, content: String, completion: @escaping (Comment?) -> Void) {
         guard let myId = userProvider?.currentUser?.id else {
             completion(nil)
             return
         }
-        
-        dataLoader?.request(CommentService.addComment(myId, issueNumber, content), callBackQueue: .main, completion: { [weak self] (response) in
+
+        dataLoader?.request(CommentService.addComment(myId, issueNumber, content), callBackQueue: .main, completion: { [weak self] response in
             switch response {
             case .failure:
                 completion(nil)
-            case .success(let response):
+            case let .success(response):
                 guard let json = response.mapJsonObject(),
-                    let authorId = json["userId"] as? Int,
-                    let author = self?.users[authorId],
-                    let comment = Comment.addResponse(json: json, author: author)
-                    else {
-                        completion(nil)
-                        return
+                      let authorId = json["userId"] as? Int,
+                      let author = self?.users[authorId],
+                      let comment = Comment.addResponse(json: json, author: author)
+                else {
+                    completion(nil)
+                    return
                 }
                 self?.issues[issueNumber]?.comments.append(comment)
                 completion(comment)
             }
         })
     }
-    
+
     func addIssue(title: String, description: String, milestoneID: Int?, completion: @escaping (Issue?) -> Void) {
         guard let myId = userProvider?.currentUser?.id else {
             completion(nil)
             return
         }
-        
-        dataLoader?.request(IssueService.createIssue(title, description, milestoneID, myId), callBackQueue: .main, completion: { (response) in
+
+        dataLoader?.request(IssueService.createIssue(title, description, milestoneID, myId), callBackQueue: .main, completion: { response in
             switch response {
             case .failure:
                 completion(nil)
-            case .success(let response):
+            case let .success(response):
                 if let issue = Issue.addResponse(jsonObject: response.mapJsonObject()) {
                     self.issues[issue.id] = issue
                     completion(issue)
@@ -157,13 +154,13 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
+
     func getIssue(at id: Int, completion: @escaping (Issue?) -> Void) {
-        dataLoader?.request(IssueService.getIssue(id), callBackQueue: .main, completion: { [weak self] (response) in
+        dataLoader?.request(IssueService.getIssue(id), callBackQueue: .main, completion: { [weak self] response in
             switch response {
             case .failure:
                 completion(nil)
-            case .success(let response):
+            case let .success(response):
                 if let issue = Issue.getResponse(jsonObject: response.mapJsonObject()) {
                     self?.issues[issue.id] = issue
                     issue.comments.forEach { self?.userProvider?.users[$0.author.id] = $0.author }
@@ -174,9 +171,9 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
+
     func changeIssueState(id: Int, open: Bool, completion: @escaping (Issue?) -> Void) {
-        dataLoader?.request(IssueService.editIssue(id, nil, nil, open), callBackQueue: .main, completion: { [weak self] (response) in
+        dataLoader?.request(IssueService.editIssue(id, nil, nil, open), callBackQueue: .main, completion: { [weak self] response in
             switch response {
             case .failure:
                 completion(nil)
@@ -186,9 +183,9 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
+
     func deleteIssue(id: Int, completion: @escaping (Issue?) -> Void) {
-        dataLoader?.request(IssueService.delete(id), callBackQueue: .main, completion: { [weak self] (response) in
+        dataLoader?.request(IssueService.delete(id), callBackQueue: .main, completion: { [weak self] response in
             switch response {
             case .failure:
                 completion(nil)
@@ -198,10 +195,9 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
+
     func editIssue(id: Int, title: String, description: String, completion: @escaping (Issue?) -> Void) {
-        
-        dataLoader?.request(IssueService.editIssue(id, title, description, nil), callBackQueue: .main, completion: { (response) in
+        dataLoader?.request(IssueService.editIssue(id, title, description, nil), callBackQueue: .main, completion: { response in
             switch response {
             case .failure:
                 completion(nil)
@@ -212,9 +208,9 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
+
     func editTitle(id: Int, title: String, completion: @escaping (Issue?) -> Void) {
-        dataLoader?.request(IssueService.editTitle(id, title), callBackQueue: .main, completion: { (response) in
+        dataLoader?.request(IssueService.editTitle(id, title), callBackQueue: .main, completion: { response in
             switch response {
             case .failure:
                 completion(nil)
@@ -224,9 +220,9 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
+
     func addLabel(at id: Int, of labelId: Int, completion: @escaping (Issue?) -> Void) {
-        dataLoader?.request(IssueService.addLabel(id, labelId), callBackQueue: .main, completion: { (response) in
+        dataLoader?.request(IssueService.addLabel(id, labelId), callBackQueue: .main, completion: { response in
             switch response {
             case .failure:
                 completion(nil)
@@ -236,9 +232,9 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
+
     func deleteLabel(at id: Int, of labelId: Int, completion: @escaping (Issue?) -> Void) {
-        dataLoader?.request(IssueService.deleteLabel(id, labelId), callBackQueue: .main, completion: { (response) in
+        dataLoader?.request(IssueService.deleteLabel(id, labelId), callBackQueue: .main, completion: { response in
             switch response {
             case .failure:
                 completion(nil)
@@ -248,9 +244,9 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
+
     func addMilestone(at id: Int, of milestone: Int, completion: @escaping (Issue?) -> Void) {
-        dataLoader?.request(IssueService.addMilestone(id, milestone), callBackQueue: .main, completion: { (response) in
+        dataLoader?.request(IssueService.addMilestone(id, milestone), callBackQueue: .main, completion: { response in
             switch response {
             case .failure:
                 completion(nil)
@@ -260,9 +256,9 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
+
     func deleteMilestone(at id: Int, completion: @escaping (Issue?) -> Void) {
-        dataLoader?.request(IssueService.deleteMilestone(id, 0), callBackQueue: .main, completion: { [weak self] (response) in
+        dataLoader?.request(IssueService.deleteMilestone(id, 0), callBackQueue: .main, completion: { [weak self] response in
             switch response {
             case .failure:
                 completion(nil)
@@ -272,9 +268,9 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
+
     func addAsignee(at id: Int, userId: Int, completion: @escaping (Issue?) -> Void) {
-        dataLoader?.request(IssueService.addAssignee(id, userId), callBackQueue: .main, completion: { (response) in
+        dataLoader?.request(IssueService.addAssignee(id, userId), callBackQueue: .main, completion: { response in
             switch response {
             case .failure:
                 completion(nil)
@@ -284,9 +280,9 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
+
     func deleteAsignee(at id: Int, userId: Int, completion: @escaping (Issue?) -> Void) {
-        dataLoader?.request(IssueService.deleteAssignee(id, userId), callBackQueue: .main, completion: { (response) in
+        dataLoader?.request(IssueService.deleteAssignee(id, userId), callBackQueue: .main, completion: { response in
             switch response {
             case .failure:
                 completion(nil)
@@ -296,5 +292,4 @@ class IssueProvider: IssueProvidable {
             }
         })
     }
-    
 }

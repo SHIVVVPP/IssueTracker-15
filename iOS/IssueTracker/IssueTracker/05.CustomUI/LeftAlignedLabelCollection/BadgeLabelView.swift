@@ -9,7 +9,6 @@
 import UIKit
 
 class BadgeLabelView: UILabel {
-
     var contentInsets: UIEdgeInsets = .zero {
         didSet {
             setNeedsLayout()
@@ -21,31 +20,30 @@ class BadgeLabelView: UILabel {
             setNeedsLayout()
         }
     }
-    
+
     func setPadding(top: CGFloat, left: CGFloat, bottom: CGFloat, right: CGFloat) {
         contentInsets = UIEdgeInsets(top: top, left: left, bottom: bottom, right: right)
     }
-    
+
     func setBackgroundColor(_ color: CGColor) {
         layer.backgroundColor = color
     }
-    
+
     func setBorder(width: CGFloat, color: CGColor) {
         layer.borderWidth = width
         layer.borderColor = color
     }
-    
+
     override var intrinsicContentSize: CGSize {
         let contentSize = super.intrinsicContentSize
         let contentWidth = contentSize.width + contentInsets.left + contentInsets.right
         let contentHeight = contentSize.height + contentInsets.top + contentInsets.bottom
         return CGSize(width: contentWidth, height: contentHeight)
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         layer.cornerRadius = bounds.height / 2 * cornerRadiusRatio
         invalidateIntrinsicContentSize()
     }
-
 }

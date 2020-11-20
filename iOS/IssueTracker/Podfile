@@ -7,6 +7,7 @@ target 'IssueTracker' do
 
   # Pods for IssueTracker
   pod 'SwiftLint'
+  pod 'SwiftFormat/CLI'
   pod "MarkdownView"
   
   target 'IssueTrackerTests' do

@@ -9,11 +9,8 @@
 import Foundation
 import NetworkFramework
 
-protocol IssueTrackerService: Target {
-    
-}
+protocol IssueTrackerService: Target {}
 
 extension IssueTrackerService {
     var baseURL: URL { return URL(string: "http://118.67.134.194:3000")! }
-    
 }

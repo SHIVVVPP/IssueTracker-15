@@ -9,15 +9,13 @@
 import Foundation
 
 struct EncodableObject: Encodable {
-    
     private let object: Encodable
-    
+
     public init(_ object: Encodable) {
         self.object = object
     }
-    
+
     func encode(to encoder: Encoder) throws {
         try object.encode(to: encoder)
     }
-    
 }

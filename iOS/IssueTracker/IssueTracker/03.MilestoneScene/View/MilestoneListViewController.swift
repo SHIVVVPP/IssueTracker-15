@@ -9,9 +9,8 @@
 import UIKit
 
 class MilestoneListViewController: UIViewController {
-    
-    @IBOutlet weak var collectionView: UICollectionView!
-    
+    @IBOutlet var collectionView: UICollectionView!
+
     var milestoneListViewModel: MilestoneListViewModelProtocol? {
         didSet {
             milestoneListViewModel?.didFetch = { [weak self] in
@@ -19,23 +18,23 @@ class MilestoneListViewController: UIViewController {
             }
         }
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         configureCollectionView()
         milestoneListViewModel?.needFetchItems()
     }
-    
+
     private func configureCollectionView() {
         setupCollectionViewLayout()
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.registerCell(type: MilestoneCellView.self)
     }
-    
+
     private func setupCollectionViewLayout() {
         let layout = UICollectionViewFlowLayout()
-        layout.estimatedItemSize = CGSize(width: self.view.bounds.width, height: self.view.bounds.height / 8)
+        layout.estimatedItemSize = CGSize(width: view.bounds.width, height: view.bounds.height / 8)
         layout.minimumLineSpacing = 1
         layout.sectionHeadersPinToVisibleBounds = true
         collectionView.setCollectionViewLayout(layout, animated: false)
@@ -45,54 +44,48 @@ class MilestoneListViewController: UIViewController {
 // MARK: - Action
 
 extension MilestoneListViewController {
-    
-    @IBAction func plusButtonTapped(_ sender: Any) {
+    @IBAction func plusButtonTapped(_: Any) {
         showSubmitFormView(type: .add)
     }
-    
+
     private func showSubmitFormView(type: MilestoneSubmitFieldsView.SubmitFieldType) {
         guard let milestoneSubmitFieldsView = MilestoneSubmitFieldsView.createView(),
-            let formView = SubmitFormViewController.createViewController(with: milestoneSubmitFieldsView)
-            else { return }
-        
+              let formView = SubmitFormViewController.createViewController(with: milestoneSubmitFieldsView)
+        else { return }
+
         switch type {
         case .add:
             milestoneSubmitFieldsView.onSaveButtonTapped = milestoneListViewModel?.addNewMileStone
-        case .edit(let indexPath):
+        case let .edit(indexPath):
             milestoneSubmitFieldsView.configure(milestoneItemViewModel: milestoneListViewModel?.cellForItemAt(path: indexPath))
-            milestoneSubmitFieldsView.onSaveButtonTapped = { (title, dueDate, desc) in
+            milestoneSubmitFieldsView.onSaveButtonTapped = { title, dueDate, desc in
                 self.milestoneListViewModel?.editMileStone(at: indexPath, title: title, description: desc, dueDate: dueDate)
             }
         }
-        
+
         present(formView, animated: true, completion: nil)
     }
-    
 }
 
 // MARK: - UICollectionViewDelegate Implementation
 
 extension MilestoneListViewController: UICollectionViewDelegate {
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    func collectionView(_: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         showSubmitFormView(type: .edit(indexPath))
     }
-    
 }
 
 // MARK: - UICollectionViewDataSource Implementation
 
 extension MilestoneListViewController: UICollectionViewDataSource {
-    
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int {
         return milestoneListViewModel?.numberOfItem() ?? 0
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell: MilestoneCellView = collectionView.dequeueCell(at: indexPath),
-            let cellViewModel = milestoneListViewModel?.cellForItemAt(path: indexPath) else { return UICollectionViewCell() }
+              let cellViewModel = milestoneListViewModel?.cellForItemAt(path: indexPath) else { return UICollectionViewCell() }
         cell.configure(with: cellViewModel)
         return cell
     }
-    
 }

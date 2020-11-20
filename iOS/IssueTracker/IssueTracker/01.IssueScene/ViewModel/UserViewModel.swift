@@ -9,20 +9,18 @@
 import Foundation
 
 struct UserViewModel: ImageLoadable {
-    
     let id: Int
     var userName: String
     var imageURL: String?
 
     init(user: User? = nil) {
-        self.id = user?.id ?? -1
-        self.userName = user?.userName ?? ""
-        self.imageURL = user?.imageURL
+        id = user?.id ?? -1
+        userName = user?.userName ?? ""
+        imageURL = user?.imageURL
     }
 
     func needImage(completion: @escaping (Data?) -> Void) {
         guard let url = imageURL, !url.isEmpty else { return }
         loadImage(url: url, completion: completion)
     }
-    
 }

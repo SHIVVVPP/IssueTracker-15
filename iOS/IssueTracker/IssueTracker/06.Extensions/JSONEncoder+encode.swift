@@ -9,10 +9,8 @@
 import Foundation
 
 extension JSONEncoder {
-
     static func encode<T: Encodable>(data: T) -> Data? {
         let encoder = JSONEncoder()
         return try? encoder.encode(data)
     }
-    
 }

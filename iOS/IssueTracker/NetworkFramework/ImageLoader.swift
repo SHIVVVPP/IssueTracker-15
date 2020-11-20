@@ -12,11 +12,10 @@ public typealias ImageResult = Result<Data?, NetworkError>
 public typealias ImageCompletion = (_ result: ImageResult) -> Void
 
 public class ImageLoader {
-    
-    public static let shared: ImageLoader = ImageLoader()
-    
+    public static let shared = ImageLoader()
+
     let imageCache = NSCache<NSString, NSData>()
-    
+
     public func loadImage(from urlStr: String, callBackQueue: DispatchQueue?, completion: @escaping ImageCompletion) {
         if let cachedData = imageCache.object(forKey: NSString(string: urlStr)) {
             completion(.success(cachedData as Data))
@@ -28,29 +27,28 @@ public class ImageLoader {
             }
             return
         }
-        
-        let taskCompletion: (Data?, URLResponse?, Error?) -> Void  = { data, response, error in
-            
+
+        let taskCompletion: (Data?, URLResponse?, Error?) -> Void = { data, _, _ in
+
             guard let data = data, !data.isEmpty else {
                 self.completion(callBackQueue: callBackQueue) {
                     completion(.failure(NetworkError.imageIsNil))
                 }
                 return
             }
-            
+
             self.imageCache.setObject(data as NSData, forKey: NSString(string: urlStr))
             self.completion(callBackQueue: callBackQueue) {
                 completion(.success(data))
             }
         }
-        
+
         let task = URLSession.shared.dataTask(with: url, completionHandler: taskCompletion)
-        
+
         task.resume()
-        
     }
-    
-    func completion(callBackQueue: DispatchQueue?, work: @escaping () -> Void ) {
+
+    func completion(callBackQueue: DispatchQueue?, work: @escaping () -> Void) {
         if let queue = callBackQueue {
             queue.async {
                 work()

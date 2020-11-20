@@ -9,20 +9,19 @@
 import UIKit
 
 class BottomSheetHeaderView: UIView {
+    @IBOutlet var titleLabel: UILabel!
+    @IBOutlet var detailLabel: UILabel!
 
-    @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var detailLabel: UILabel!
-    
     var bottomSheetCellType: DetailSelectionType = .assignee
     var onHeaderViewTapped: ((DetailSelectionType) -> Void)?
-    
+
     func configure(type: DetailSelectionType) {
         bottomSheetCellType = type
         titleLabel.text = type.title
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(headerViewTapped))
         addGestureRecognizer(tapGesture)
     }
-    
+
     @objc func headerViewTapped() {
         onHeaderViewTapped?(bottomSheetCellType)
     }
@@ -31,11 +30,9 @@ class BottomSheetHeaderView: UIView {
 // MARK: - loadNIB extension
 
 extension BottomSheetHeaderView {
-    
     static let identifier = "BottomSheetHeaderView"
-    
+
     static func createView() -> BottomSheetHeaderView? {
         return Bundle.main.loadNibNamed(BottomSheetHeaderView.identifier, owner: self, options: nil)?.last as? BottomSheetHeaderView
     }
-    
 }

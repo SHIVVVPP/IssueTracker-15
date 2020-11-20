@@ -11,6 +11,6 @@ import UIKit
 extension UIView {
     func setRound(ratio: CGFloat) {
         let cornerRadius = ratio.clamp(min: 0, max: 1) * bounds.height * 1 / 2
-        self.layer.cornerRadius = cornerRadius
+        layer.cornerRadius = cornerRadius
     }
 }

@@ -10,48 +10,46 @@ import Foundation
 import NetworkFramework
 
 enum MilestoneService {
-    
     // [GET] /api/milestone
     case fetchAll
-    
+
     // getMilestone( Int)
     // [GET] /api/milestone/:id
-    case getMilestone( Int)
-    
+    case getMilestone(Int)
+
     // createMilestone( title, dueDate, description)
     // [POST] /api/milestone
-    case createMilestone( String, String?, String?)
-    
+    case createMilestone(String, String?, String?)
+
     // editMilestone ( Id, title, dueDate, description)
     // [PATCH] /api/milestone/:id
-    case editMilestone( Int, String, String?, String?)
-    
+    case editMilestone(Int, String, String?, String?)
+
     // deleteMilestone ( Id)
     // [DELETE] /api/milestone/:id
-    case deleteMilestone( Int)
+    case deleteMilestone(Int)
 }
 
 extension MilestoneService: IssueTrackerService {
-    
     var path: String {
         switch self {
         case .fetchAll:
             return "/api/milestone"
-        case .getMilestone(let id):
+        case let .getMilestone(id):
             return "/api/milestone/\(id)"
         case .createMilestone:
             return "/api/milestone"
-        case .editMilestone(let id, _, _, _):
+        case let .editMilestone(id, _, _, _):
             return "/api/milestone/\(id)"
-        case .deleteMilestone(let id):
+        case let .deleteMilestone(id):
             return "/api/milestone/\(id)"
         }
     }
-    
+
     var queryItems: [String: String]? {
         return nil
     }
-    
+
     var method: HTTPMethod {
         switch self {
         case .fetchAll, .getMilestone:
@@ -64,20 +62,20 @@ extension MilestoneService: IssueTrackerService {
             return .delete
         }
     }
-    
+
     var task: Task {
         switch self {
         case .fetchAll:
             return .requestPlain
         case .getMilestone:
             return .requestPlain
-        case .createMilestone(let title, let dueDate, let description):
+        case let .createMilestone(title, dueDate, description):
             var jsonObject = [String: Any]()
             jsonObject["title"] = title
             jsonObject["description"] = description
             jsonObject["dueDate"] = dueDate
             return .requestJsonObject(jsonObject)
-        case .editMilestone(_, let title, let dueDate, let description):
+        case let .editMilestone(_, title, dueDate, description):
             var jsonObject = [String: Any]()
             jsonObject["title"] = title
             jsonObject["description"] = description
@@ -87,7 +85,7 @@ extension MilestoneService: IssueTrackerService {
             return .requestPlain
         }
     }
-    
+
     var validationType: ValidationType {
         switch self {
         case .fetchAll:
@@ -102,9 +100,8 @@ extension MilestoneService: IssueTrackerService {
             return .custom([204])
         }
     }
-    
+
     var headers: [String: String]? {
         return nil
     }
-    
 }

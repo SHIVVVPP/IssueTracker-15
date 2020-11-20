@@ -11,6 +11,7 @@ disabled_rules:
 - function_parameter_count
 - line_length
 - type_name
+- trailing_comma
 
 force_cast: warning
 line_length: 250

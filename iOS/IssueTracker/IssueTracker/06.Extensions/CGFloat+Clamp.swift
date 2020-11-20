@@ -9,10 +9,8 @@
 import UIKit
 
 extension CGFloat {
-    
     func clamp(min: CGFloat, max: CGFloat) -> CGFloat {
         let result = self < min ? min : self
         return result > max ? max : result
     }
-    
 }

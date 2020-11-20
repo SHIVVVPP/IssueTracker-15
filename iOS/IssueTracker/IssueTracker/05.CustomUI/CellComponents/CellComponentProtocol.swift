@@ -21,5 +21,5 @@ protocol CellComponentProtocol {
 }
 
 extension CellComponentProtocol {
-    func prepareForReuse() { }
+    func prepareForReuse() {}
 }

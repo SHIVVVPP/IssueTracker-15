@@ -12,14 +12,14 @@ public enum ValidationType {
     case none
     case successCode // 2xx
     case custom([Int])
-    
+
     var statusCode: [Int] {
         switch self {
         case .none:
             return []
         case .successCode:
-            return Array(200..<300)
-        case .custom(let codes):
+            return Array(200 ..< 300)
+        case let .custom(codes):
             return codes
         }
     }

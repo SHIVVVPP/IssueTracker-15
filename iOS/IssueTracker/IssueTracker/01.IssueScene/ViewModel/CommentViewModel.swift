@@ -14,15 +14,15 @@ struct CommentViewModel: ImageLoadable {
     let createAt: String
     let userName: String
     let imageURL: String?
-    
+
     init(comment: Comment) {
         content = comment.content
         createAt = comment.createAt
         userName = comment.author.userName
         imageURL = comment.author.imageURL
     }
-    
-    func needImage(completion: @escaping (Data?) -> Void ) {
+
+    func needImage(completion: @escaping (Data?) -> Void) {
         guard let url = imageURL, !url.isEmpty else { return }
         loadImage(url: url, completion: completion)
     }

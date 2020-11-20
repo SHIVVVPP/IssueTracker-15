@@ -23,7 +23,7 @@ extension AuthService: IssueTrackerService {
             return URL(string: "http://118.67.134.194:3000")!
         }
     }
-    
+
     var path: String {
         switch self {
         case .github:
@@ -32,28 +32,28 @@ extension AuthService: IssueTrackerService {
             return "/api/signin/github"
         }
     }
-    
+
     var method: HTTPMethod {
         return .post
     }
-    
+
     var task: Task {
         switch self {
         case .github:
             return .requestPlain
-        case .server(let tokenRequest):
+        case let .server(tokenRequest):
             return .requestJsonCodable(tokenRequest)
         }
     }
-    
+
     var validationType: ValidationType {
         return .successCode
     }
-    
+
     var headers: [String: String]? {
         return nil
     }
-    
+
     var queryItems: [String: String]? {
         switch self {
         case .github:
@@ -62,5 +62,4 @@ extension AuthService: IssueTrackerService {
             return nil
         }
     }
-    
 }

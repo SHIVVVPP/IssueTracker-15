@@ -9,18 +9,17 @@
 import UIKit
 
 class DetailConditionSelectCellView: UITableViewCell {
-    
-    @IBOutlet weak var checkImage: UIImageView!
-    
+    @IBOutlet var checkImage: UIImageView!
+
     private var component: CellComponentProtocol?
-    
+
     enum Constant {
         static let imageChecked = UIImage(systemName: "x.circle.fill")
         static let imageUnchecked = UIImage(systemName: "plus.circle")
         static let colorChecked = UIColor.gray
         static let colorUnChecked = UIColor.link
     }
-    
+
     func configure(type: ComponentStyle, viewModel: CellComponentViewModel) {
         if component == nil {
             configureComponent(type: type)
@@ -28,7 +27,7 @@ class DetailConditionSelectCellView: UITableViewCell {
         component?.configure(viewModel: viewModel)
         layoutIfNeeded()
     }
-    
+
     private func configureComponent(type: ComponentStyle) {
         switch type {
         case .userInfo:
@@ -39,20 +38,20 @@ class DetailConditionSelectCellView: UITableViewCell {
             component = LabelComponentView.createView()
         }
         guard let component = component else { return }
-        
+
         addSubview(component.contentView)
         NSLayoutConstraint.activate([
             component.contentView.topAnchor.constraint(equalTo: topAnchor),
             component.contentView.leftAnchor.constraint(equalTo: leftAnchor, constant: 20),
             component.contentView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            component.contentView.rightAnchor.constraint(lessThanOrEqualTo: checkImage.leftAnchor, constant: -10)
+            component.contentView.rightAnchor.constraint(lessThanOrEqualTo: checkImage.leftAnchor, constant: -10),
         ])
     }
-    
+
     override func prepareForReuse() {
         component?.prepareForReuse()
     }
-    
+
     func setCheck(_ check: Bool) {
         checkImage.image = check ? Constant.imageChecked : Constant.imageUnchecked
         checkImage.tintColor = check ? Constant.colorChecked : Constant.colorUnChecked
@@ -65,7 +64,7 @@ extension DetailConditionSelectCellView: UITableViewRegisterable {
     static var cellIdentifier: String {
         return "DetailConditionSelectCellView"
     }
-    
+
     static var cellNib: UINib {
         return UINib(nibName: cellIdentifier, bundle: nil)
     }

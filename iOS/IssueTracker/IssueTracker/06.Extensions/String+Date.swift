@@ -12,7 +12,7 @@ extension String {
     var dateForServer: Date? {
         return DateFormatter.datdFromServer.date(from: self)
     }
-    
+
     var dateForSubmitForm: Date? {
         return DateFormatter.dateForSubmitForm.date(from: self)
     }

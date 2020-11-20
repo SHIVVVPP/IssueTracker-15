@@ -22,14 +22,14 @@ extension UICollectionView {
     func registerHeader(type: UICollectionViewHeaderRegisterable.Type) {
         register(type.headerNib, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: type.headerIdentifier)
     }
-    
+
     func dequeueHeader<HeaderType: UICollectionViewHeaderRegisterable>(at indexPath: IndexPath) -> HeaderType? {
         guard let header = dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: HeaderType.headerIdentifier, for: indexPath) as? HeaderType else {
             return nil
         }
         return header
     }
-    
+
     func registerCell(type: UICollectionViewRegisterable.Type) {
         register(type.cellNib, forCellWithReuseIdentifier: type.cellIdentifier)
     }

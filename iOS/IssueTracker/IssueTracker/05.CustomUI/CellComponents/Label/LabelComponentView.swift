@@ -9,17 +9,14 @@
 import UIKit
 
 class LabelComponentView: UIView {
-
-    @IBOutlet weak var labelBadge: BadgeLabelView!
-    
+    @IBOutlet var labelBadge: BadgeLabelView!
 }
 
 // MARK: - CellComponentProtocol Implementation
 
 extension LabelComponentView: CellComponentProtocol {
-    
     var contentView: UIView { self }
-    
+
     func configure(viewModel: CellComponentViewModel) {
         labelBadge.text = viewModel.title
         guard let colorCode = viewModel.element else { return }

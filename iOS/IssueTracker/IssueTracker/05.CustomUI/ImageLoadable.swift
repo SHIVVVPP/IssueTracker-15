@@ -10,17 +10,17 @@ import Foundation
 import NetworkFramework
 
 protocol ImageLoadable {
-    func needImage(completion: @escaping (Data?) -> Void )
-    func loadImage(url: String, completion: @escaping (Data?) -> Void )
+    func needImage(completion: @escaping (Data?) -> Void)
+    func loadImage(url: String, completion: @escaping (Data?) -> Void)
 }
 
 extension ImageLoadable {
-    func loadImage(url: String, completion: @escaping (Data?) -> Void ) {
-        ImageLoader.shared.loadImage(from: url, callBackQueue: .main) { (result) in
+    func loadImage(url: String, completion: @escaping (Data?) -> Void) {
+        ImageLoader.shared.loadImage(from: url, callBackQueue: .main) { result in
             switch result {
             case .failure, .success(.none):
                 completion(nil)
-            case .success(.some(let data)):
+            case let .success(.some(data)):
                 completion(data)
             }
         }

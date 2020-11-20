@@ -16,34 +16,32 @@ protocol IssueFilterable: AnyObject {
 }
 
 class IssueFilter: IssueFilterable {
-    
     var generalConditions = [Bool](repeating: false, count: Condition.allCases.count)
     var detailConditions = [Int](repeating: -1, count: DetailSelectionType.allCases.count)
     var searchText: String?
-    
+
     init() {
-        self.generalConditions[0] = true
+        generalConditions[0] = true
     }
-    
+
     init(generalCondition: [Bool], detailCondition: [Int]) {
         guard detailCondition.count == DetailSelectionType.allCases.count,
-            generalCondition.count == Condition.allCases.count
-            else { return }
-        self.generalConditions = generalCondition
-        self.detailConditions = detailCondition
+              generalCondition.count == Condition.allCases.count
+        else { return }
+        generalConditions = generalCondition
+        detailConditions = detailCondition
     }
-    
+
     func filter(datas: [Issue], user: User?) -> [Issue] {
-        
         var dataSet = Set<Issue>()
         if generalConditions[Condition.issueOpened.rawValue] {
             dataSet = dataSet.union(datas.filter { $0.isOpened })
         }
-        
+
         if generalConditions[Condition.issueClosed.rawValue] {
             dataSet = dataSet.union(datas.filter { !$0.isOpened })
         }
-        
+
         if generalConditions[Condition.issueAssignedToMe.rawValue] {
             dataSet = dataSet.intersection(datas.filter {
                 $0.assignees.contains(where: {
@@ -51,42 +49,50 @@ class IssueFilter: IssueFilterable {
                 })
             })
         }
-        
+
         if generalConditions[Condition.issueFromMe.rawValue] {
             dataSet = dataSet.intersection(datas.filter {
                 $0.author == user?.id
             })
         }
-        
-        if let id = detailConditions[safe: DetailSelectionType.assignee.rawValue],
-            id != -1 {
-            dataSet = dataSet.intersection(datas.filter { $0.assignees.contains(where: { $0 == id })})
+
+        if
+            let id = detailConditions[safe: DetailSelectionType.assignee.rawValue],
+            id != -1
+        {
+            dataSet = dataSet.intersection(datas.filter { $0.assignees.contains(where: { $0 == id }) })
         }
 
-        if let id = detailConditions[safe: DetailSelectionType.writer.rawValue],
-            id != -1 {
+        if
+            let id = detailConditions[safe: DetailSelectionType.writer.rawValue],
+            id != -1
+        {
             dataSet = dataSet.intersection(datas.filter { $0.author == id })
         }
-        
-        if let id = detailConditions[safe: DetailSelectionType.label.rawValue],
-            id != -1 {
-            dataSet = dataSet.intersection(datas.filter { $0.labels.contains(where: { $0 == id })})
+
+        if
+            let id = detailConditions[safe: DetailSelectionType.label.rawValue],
+            id != -1
+        {
+            dataSet = dataSet.intersection(datas.filter { $0.labels.contains(where: { $0 == id }) })
         }
-        
-        if let id = detailConditions[safe: DetailSelectionType.milestone.rawValue],
-            id != -1 {
-            dataSet = dataSet.intersection(datas.filter { $0.milestone ?? -1 ==  id })
+
+        if
+            let id = detailConditions[safe: DetailSelectionType.milestone.rawValue],
+            id != -1
+        {
+            dataSet = dataSet.intersection(datas.filter { $0.milestone ?? -1 == id })
         }
-        
-        if let searchTarget = self.searchText {
+
+        if let searchTarget = searchText {
             dataSet = dataSet.filter { $0.title.contains(searchTarget) }
         }
-        
+
         return dataSet.sorted { (lhs, rhs) -> Bool in
             guard let dateLhs = lhs.createdAt.dateForServer,
-                let dateRhs = rhs.createdAt.dateForServer
-                else { return true }
-            
+                  let dateRhs = rhs.createdAt.dateForServer
+            else { return true }
+
             return dateLhs > dateRhs
         }
     }

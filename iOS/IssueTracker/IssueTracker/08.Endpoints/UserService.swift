@@ -10,31 +10,29 @@ import Foundation
 import NetworkFramework
 
 enum UserService: IssueTrackerService {
-    
     case fetchAll
-    
+
     var path: String {
         return "/api/user"
     }
-    
+
     var method: HTTPMethod {
         return .get
     }
-    
+
     var task: Task {
         return .requestPlain
     }
-    
+
     var validationType: ValidationType {
         return .successCode
     }
-    
+
     var headers: [String: String]? {
         return nil
     }
-    
+
     var queryItems: [String: String]? {
         return nil
     }
-    
 }
