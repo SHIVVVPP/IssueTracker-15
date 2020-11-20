@@ -28,7 +28,7 @@ class LabelListViewModelMock: IssueTracker.LabelListViewModelProtocol {
     
     var didFetch: (() -> Void)?
     
-    func needFetchItems() {
+    func viewDidLoad() {
         needFetchItemsCalled = true
     }
     

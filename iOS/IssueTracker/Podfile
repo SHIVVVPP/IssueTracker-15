@@ -7,7 +7,6 @@ target 'IssueTracker' do
 
   # Pods for IssueTracker
   pod 'SwiftLint'
-  pod 'SwiftGen', '~> 6.0'
   pod "MarkdownView"
   
   target 'IssueTrackerTests' do

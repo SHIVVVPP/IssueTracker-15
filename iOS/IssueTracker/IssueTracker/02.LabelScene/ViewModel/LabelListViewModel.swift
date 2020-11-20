@@ -7,25 +7,33 @@
 //
 
 import Foundation
+import Combine
 
-protocol LabelListViewModelProtocol: AnyObject {
-    var didFetch: (() -> Void)? { get set }
-    func needFetchItems()
-    func cellForItemAt(path: IndexPath) -> LabelItemViewModel
-    func numberOfItem() -> Int
+protocol LabelListViewModelInputs {
+    func viewDidLoad()
     func addNewLabel(title: String, desc: String, hexColor: String)
     func editLabel(at indexPath: IndexPath, title: String, desc: String, hexColor: String)
 }
 
-class LabelListViewModel: LabelListViewModelProtocol {
+protocol LabelListViewModelOutputs {
+    var labelPublisher: Published<[LabelItemViewModel]>.Publisher { get }
+}
+
+protocol LabelListViewModelType {
+    var inputs: LabelListViewModelInputs { get }
+    var outputs: LabelListViewModelOutputs { get }
+}
+
+class LabelListViewModel: LabelListViewModelType, LabelListViewModelInputs, LabelListViewModelOutputs {
     
     private weak var labelProvider: LabelProvidable?
     
-    var didFetch: (() -> Void)?
-    private var labels = [LabelItemViewModel]()
+    var labelPublisher: Published<[LabelItemViewModel]>.Publisher { $labels }
+    @Published private var labels: [LabelItemViewModel]
     
     init(with labelProvider: LabelProvidable) {
         self.labelProvider = labelProvider
+        labels = []
     }
     
     func editLabel(at indexPath: IndexPath, title: String, desc: String, hexColor: String) {
@@ -34,9 +42,6 @@ class LabelListViewModel: LabelListViewModelProtocol {
                 let label = label
                 else { return }
             self.labels[indexPath.row] = LabelItemViewModel(label: label)
-            DispatchQueue.main.async {
-                self.didFetch?()
-            }
         }
     }
     
@@ -46,30 +51,18 @@ class LabelListViewModel: LabelListViewModelProtocol {
                 let label = label
                 else { return }
             self.labels.append(LabelItemViewModel(label: label))
-            DispatchQueue.main.async {
-                self.didFetch?()
-            }
         }
     }
     
-    func needFetchItems() {
+    func viewDidLoad() {
         labelProvider?.fetchLabels { [weak self] (datas) in
             guard let `self` = self,
                 let labels = datas
                 else { return }
             labels.forEach { self.labels.append(LabelItemViewModel(label: $0))  }
-            DispatchQueue.main.async {
-                self.didFetch?()
-            }
         }
     }
     
-    func cellForItemAt(path: IndexPath) -> LabelItemViewModel {
-        return labels[path.row]
-    }
-    
-    func numberOfItem() -> Int {
-        labels.count
-    }
-    
+    var inputs: LabelListViewModelInputs { self }
+    var outputs: LabelListViewModelOutputs { self }
 }

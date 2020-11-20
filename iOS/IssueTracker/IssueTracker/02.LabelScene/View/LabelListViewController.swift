@@ -7,27 +7,39 @@
 //
 
 import UIKit
+import Combine
 
 class LabelListViewController: UIViewController {
     @IBOutlet weak var collectionView: UICollectionView!
     
-    var labelListViewModel: LabelListViewModelProtocol? {
-        didSet {
-            labelListViewModel?.didFetch = { [weak self] in
-                self?.collectionView.reloadData()
-            }
-        }
-    }
+    var labelListViewModel: LabelListViewModelType?
+    private var dataSource = LabelListDataSource()
+    
+    private var cancellables: Set<AnyCancellable> = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         configureCollectionView()
-        labelListViewModel?.needFetchItems()
+        bindViewModel()
+        labelListViewModel?.inputs.viewDidLoad()
+    }
+    
+    private func bindViewModel() {
+        guard let viewModel = labelListViewModel?.outputs
+        else { return }
+        
+        viewModel.labelPublisher
+            .receive(on: RunLoop.main)
+            .sink { labels in
+                self.dataSource.load(labels: labels)
+                self.collectionView.reloadData()
+            }
+            .store(in: &cancellables)
     }
     
     private func configureCollectionView() {
         setupCollectionViewLayout()
-        collectionView.dataSource = self
+        collectionView.dataSource = dataSource
         collectionView.delegate = self
         collectionView.registerCell(type: LabelCellView.self)
     }
@@ -57,11 +69,11 @@ extension LabelListViewController {
         
         switch type {
         case .add:
-            labelSubmitFieldsView.onSaveButtonTapped = labelListViewModel?.addNewLabel
+            labelSubmitFieldsView.onSaveButtonTapped = labelListViewModel?.inputs.addNewLabel
         case .edit(let indexPath):
-            labelSubmitFieldsView.configure(labelViewModel: labelListViewModel?.cellForItemAt(path: indexPath))
+            labelSubmitFieldsView.configure(labelViewModel: dataSource.datas[indexPath.row])
             labelSubmitFieldsView.onSaveButtonTapped = { (title, desc, colorCode) in
-                self.labelListViewModel?.editLabel(at: indexPath, title: title, desc: desc, hexColor: colorCode)
+                self.labelListViewModel?.inputs.editLabel(at: indexPath, title: title, desc: desc, hexColor: colorCode)
             }
         }
         present(formView, animated: true, completion: nil)
@@ -75,24 +87,6 @@ extension LabelListViewController: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         showSubmitFormView(type: .edit(indexPath))
-    }
-    
-}
-
-// MARK: - UICollectionViewDataSource Implementation
-
-extension LabelListViewController: UICollectionViewDataSource {
-    
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return labelListViewModel?.numberOfItem() ?? 0
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell: LabelCellView = collectionView.dequeueCell(at: indexPath),
-            let cellViewModel = labelListViewModel?.cellForItemAt(path: indexPath)
-            else { return UICollectionViewCell() }
-        cell.configure(with: cellViewModel)
-        return cell
     }
     
 }

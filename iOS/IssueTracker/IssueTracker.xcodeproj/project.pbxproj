@@ -146,6 +146,7 @@
 		96C734D32549444E00DEC9A4 /* LabelListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C734D22549444E00DEC9A4 /* LabelListViewModel.swift */; };
 		96C734D52549452600DEC9A4 /* LabelItemViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C734D42549452600DEC9A4 /* LabelItemViewModel.swift */; };
 		96C8357525490F1A0086A6E6 /* BadgeLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C8357425490F1A0086A6E6 /* BadgeLabelView.swift */; };
+		96CC4D40256739400059386E /* LabelListDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96CC4D3F256739400059386E /* LabelListDataSource.swift */; };
 		96D7CD38255DF7EC007891F4 /* UIColor+LabelTextColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D7CD37255DF7EC007891F4 /* UIColor+LabelTextColor.swift */; };
 		96DD118B2550F3930065F44A /* CellComponentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DD118A2550F3930065F44A /* CellComponentViewModel.swift */; };
 		96F95BFA254E6C4A00EC00C6 /* IssueListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F95BF9254E6C4A00EC00C6 /* IssueListViewController.swift */; };
@@ -334,6 +335,7 @@
 		96C734D22549444E00DEC9A4 /* LabelListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelListViewModel.swift; sourceTree = "<group>"; };
 		96C734D42549452600DEC9A4 /* LabelItemViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelItemViewModel.swift; sourceTree = "<group>"; };
 		96C8357425490F1A0086A6E6 /* BadgeLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeLabelView.swift; sourceTree = "<group>"; };
+		96CC4D3F256739400059386E /* LabelListDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelListDataSource.swift; sourceTree = "<group>"; };
 		96D7CD37255DF7EC007891F4 /* UIColor+LabelTextColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+LabelTextColor.swift"; sourceTree = "<group>"; };
 		96DD118A2550F3930065F44A /* CellComponentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellComponentViewModel.swift; sourceTree = "<group>"; };
 		96F95BF9254E6C4A00EC00C6 /* IssueListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueListViewController.swift; sourceTree = "<group>"; };
@@ -508,6 +510,7 @@
 			children = (
 				96C734D1254943BF00DEC9A4 /* ViewModel */,
 				950EA0592547FF74005BE133 /* View */,
+				96CC4D3F256739400059386E /* LabelListDataSource.swift */,
 			);
 			path = 02.LabelScene;
 			sourceTree = "<group>";
@@ -1260,6 +1263,7 @@
 				95C2F8952547EBE0006B3BC6 /* Label.swift in Sources */,
 				96C8357525490F1A0086A6E6 /* BadgeLabelView.swift in Sources */,
 				96B28772255B794400CB98ED /* Comment.swift in Sources */,
+				96CC4D40256739400059386E /* LabelListDataSource.swift in Sources */,
 				965A4DF02552CDA900A4A7D7 /* IssueService.swift in Sources */,
 				96526C652557043200E2E387 /* CommentService.swift in Sources */,
 				956B5D0525503D20001CBAA9 /* MilestoneService.swift in Sources */,
