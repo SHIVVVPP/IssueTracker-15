@@ -6,6 +6,7 @@
 //  Copyright © 2020 IssueTracker-15. All rights reserved.
 //
 
+import Combine
 import UIKit
 
 protocol IssucCellViewDelegate: AnyObject {
@@ -47,7 +48,8 @@ class IssueCellView: UICollectionViewCell {
         }
     }()
 
-    private weak var issueItemViewModel: IssueItemViewModelProtocol?
+    private var issueItemViewModel: IssueItemViewModelTypes?
+    private var cancellables = Set<AnyCancellable>()
 
     private lazy var checkBoxGuideWidthConstraint = checkBoxGuideView.widthAnchor.constraint(equalToConstant: 0)
 
@@ -74,23 +76,39 @@ class IssueCellView: UICollectionViewCell {
         ])
     }
 
-    func configure(issueItemViewModel: IssueItemViewModelProtocol) {
+    func configure(issueItemViewModel: IssueItemViewModelTypes) {
         self.issueItemViewModel = issueItemViewModel
 
-        titleLabel.text = issueItemViewModel.title
+        titleLabel.text = issueItemViewModel.outputs.title
         titleLabel.invalidateIntrinsicContentSize()
-        setMilestone(title: issueItemViewModel.milestoneTitle)
-        setLabels(labelViewModels: issueItemViewModel.labelItemViewModels)
-        setStatus(isOpened: issueItemViewModel.isOpened)
-        setCheck(issueItemViewModel.checked)
 
-        self.issueItemViewModel?.didMilestoneChanged = { [weak self] milestone in
-            self?.setMilestone(title: milestone)
-        }
+        issueItemViewModel.outputs.milestoneTitlePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { milestoneTitle in
+                self.setMilestone(title: milestoneTitle)
+            }
+            .store(in: &cancellables)
 
-        self.issueItemViewModel?.didLabelsChanged = { [weak self] labelViewModels in
-            self?.setLabels(labelViewModels: labelViewModels)
-        }
+        issueItemViewModel.outputs.labelItemViewModelPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { labels in
+                self.setLabels(labelViewModels: labels)
+            }
+            .store(in: &cancellables)
+
+        issueItemViewModel.outputs.isOpenedPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { isOpen in
+                self.setStatus(isOpened: isOpen)
+            }
+            .store(in: &cancellables)
+
+        issueItemViewModel.outputs.checkedPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { checked in
+                self.setCheck(checked)
+            }
+            .store(in: &cancellables)
     }
 
     override func prepareForReuse() {
@@ -102,6 +120,8 @@ class IssueCellView: UICollectionViewCell {
         cellHorizontalScrollView.contentOffset = CGPoint.zero
         labelCollectionView.isHidden = true
         setCheck(false)
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
     }
 
     override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
@@ -156,13 +176,13 @@ extension IssueCellView {
     }
 
     @IBAction func closeButtonTapped(_: Any) {
-        guard let id = issueItemViewModel?.id else { return }
+        guard let id = issueItemViewModel?.outputs.id else { return }
         delegate?.closeIssueButtonTapped(self, at: id)
         cellHorizontalScrollView.setContentOffset(CGPoint.zero, animated: true)
     }
 
     @IBAction func deleteButtonTapped(_: Any) {
-        guard let id = issueItemViewModel?.id else { return }
+        guard let id = issueItemViewModel?.outputs.id else { return }
         delegate?.deleteIssueButtonTapped(self, at: id)
     }
 
@@ -183,7 +203,7 @@ extension IssueCellView {
 
 extension IssueCellView: UIScrollViewDelegate {
     func scrollViewWillBeginDragging(_: UIScrollView) {
-        guard let id = issueItemViewModel?.id else { return }
+        guard let id = issueItemViewModel?.outputs.id else { return }
         delegate?.issueCellViewBeginDragging(self, at: id)
     }
 

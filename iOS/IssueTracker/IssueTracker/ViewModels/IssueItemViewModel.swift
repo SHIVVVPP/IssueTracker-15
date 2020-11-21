@@ -6,7 +6,24 @@
 //  Copyright © 2020 IssueTracker-15. All rights reserved.
 //
 
+import Combine
 import Foundation
+
+protocol IssueItemViewModelTypes {
+    var inputs: IssueItemViewModelInputs { get }
+    var outputs: IssueItemViewModelOutputs { get }
+}
+
+protocol IssueItemViewModelInputs {}
+
+protocol IssueItemViewModelOutputs {
+    var id: Int { get }
+    var title: String { get }
+    var milestoneTitlePublisher: Published<String>.Publisher { get }
+    var isOpenedPublisher: Published<Bool>.Publisher { get }
+    var labelItemViewModelPublisher: Published<[LabelItemViewModel]>.Publisher { get }
+    var checkedPublisher: Published<Bool>.Publisher { get }
+}
 
 protocol IssueItemViewModelProtocol: AnyObject {
     var id: Int { get }
@@ -20,18 +37,22 @@ protocol IssueItemViewModelProtocol: AnyObject {
     var checked: Bool { get }
 }
 
-class IssueItemViewModel: IssueItemViewModelProtocol {
+class IssueItemViewModel: IssueItemViewModelTypes, IssueItemViewModelOutputs, IssueItemViewModelInputs {
+    var inputs: IssueItemViewModelInputs { self }
+    var outputs: IssueItemViewModelOutputs { self }
+
+    var milestoneTitlePublisher: Published<String>.Publisher { $milestoneTitle }
+    var isOpenedPublisher: Published<Bool>.Publisher { $isOpened }
+    var labelItemViewModelPublisher: Published<[LabelItemViewModel]>.Publisher { $labelItemViewModels }
+    var checkedPublisher: Published<Bool>.Publisher { $checked }
+
     let id: Int
     let title: String
 
-    private(set) var isOpened: Bool
-    private(set) var milestoneTitle: String = ""
-    private(set) var labelItemViewModels = [LabelItemViewModel]()
-
-    var didMilestoneChanged: ((String) -> Void)?
-    var didLabelsChanged: (([LabelItemViewModel]) -> Void)?
-
-    var checked: Bool = false
+    @Published var isOpened: Bool
+    @Published var checked: Bool = false
+    @Published private(set) var milestoneTitle: String = ""
+    @Published private(set) var labelItemViewModels = [LabelItemViewModel]()
 
     init(issue: Issue) {
         id = issue.id
@@ -42,13 +63,11 @@ class IssueItemViewModel: IssueItemViewModelProtocol {
     func setLabels(labels: [Label]?) {
         guard let labels = labels else { return }
         labelItemViewModels = labels.map { LabelItemViewModel(label: $0) }
-        didLabelsChanged?(labelItemViewModels)
     }
 
     func setMilestone(milestone: Milestone?) {
         guard let milestone = milestone else { return }
         milestoneTitle = milestone.title
-        didMilestoneChanged?(milestoneTitle)
     }
 }
 

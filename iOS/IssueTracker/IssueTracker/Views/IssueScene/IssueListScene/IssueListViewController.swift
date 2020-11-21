@@ -5,6 +5,7 @@
 //  Created by 김신우 on 2020/11/01.
 //  Copyright © 2020 IssueTracker-15. All rights reserved.
 //
+import Combine
 import UIKit
 
 class IssueListViewController: UIViewController {
@@ -33,31 +34,39 @@ class IssueListViewController: UIViewController {
 
     private var viewingMode: ViewingMode = .general
 
-    var issueListViewModel: IssueListViewModelProtocol? {
-        didSet {
-            issueListViewModel?.didItemChanged = { [weak self] issueItems in
-                guard let `self` = self else { return }
-                var snapShot = SnapShot()
-                snapShot.appendSections([.issues])
-                snapShot.appendItems(issueItems, toSection: .issues)
-                self.dataSource.apply(snapShot, animatingDifferences: true)
-            }
-            issueListViewModel?.didCellChecked = { [weak self] indexPath, check in
-                guard let cell = self?.collectionView.cellForItem(at: indexPath) as? IssueCellView else { return }
-                cell.setCheck(check)
-            }
-            issueListViewModel?.showTitleWithCheckNum = { [weak self] num in
-                guard let vieingMode = self?.viewingMode, vieingMode == .edit else { return }
-                self?.title = "\(num) 개 선택"
-            }
-        }
-    }
+    var issueListViewModel: IssueListViewModelTypes?
+    private var cancellables = Set<AnyCancellable>()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         configureSearchBar()
         configureCollectionView()
+        bindViewModel()
+
         floatingButtonAspectRatioConstraint.isActive = true
+    }
+
+    private func bindViewModel() {
+        guard let viewModel = issueListViewModel else { return }
+
+        viewModel.outputs.issuePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { issueViewModels in
+                var snapShot = SnapShot()
+                snapShot.appendSections([.issues])
+                snapShot.appendItems(issueViewModels, toSection: .issues)
+                self.dataSource.apply(snapShot, animatingDifferences: true)
+                self.collectionView.collectionViewLayout.invalidateLayout()
+            }
+            .store(in: &cancellables)
+
+        viewModel.outputs.checkedNumPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { numChecked in
+                guard self.viewingMode == .edit else { return }
+                self.title = "\(numChecked) 개 선택"
+            }
+            .store(in: &cancellables)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -67,7 +76,7 @@ class IssueListViewController: UIViewController {
             guard let cell = $0 as? IssueCellView else { return }
             cell.resetScrollOffset()
         }
-        issueListViewModel?.needFetchItems()
+        issueListViewModel?.inputs.needFetchItems()
     }
 
     override func viewDidLayoutSubviews() {
@@ -120,7 +129,7 @@ extension IssueListViewController {
         case .general:
             presentIssueDetailViewController(indexPath: indexPath)
         case .edit:
-            issueListViewModel?.selectCell(at: indexPath)
+            issueListViewModel?.inputs.selectCell(at: indexPath)
         }
     }
 
@@ -138,18 +147,18 @@ extension IssueListViewController {
         case .general:
             presentFilterViewController()
         case .edit:
-            issueListViewModel?.selectAllCells()
+            issueListViewModel?.inputs.selectAllCells()
         }
     }
 
     @IBAction func floatingButtonTapped(_: Any) {
         switch viewingMode {
         case .edit:
-            issueListViewModel?.closeSelectedIssue()
+            issueListViewModel?.inputs.closeSelectedIssue()
             toGeneralMode()
         case .general:
             AddNewIssueViewController.present(at: self, addType: .newIssue, previousData: nil, onDismiss: { [weak self] content in
-                self?.issueListViewModel?.addNewIssue(title: content[0], description: content[1])
+                self?.issueListViewModel?.inputs.addNewIssue(title: content[0], description: content[1])
             })
         }
     }
@@ -172,7 +181,7 @@ extension IssueListViewController {
         rightNavButton.title = "Edit"
         leftNavButton.title = "Filter"
         changeButtonTo(mode: .general)
-        issueListViewModel?.clearSelectedCells()
+        issueListViewModel?.inputs.clearSelectedCells()
         collectionView.visibleCells.forEach {
             guard let cell = $0 as? IssueCellView else { return }
             cell.showCheckBox(show: false, animation: true)
@@ -213,18 +222,18 @@ extension IssueListViewController {
 extension IssueListViewController {
     private func presentFilterViewController() {
         guard viewingMode == .general,
-              let issueListViewModel = issueListViewModel
+              var issueListViewModel = issueListViewModel
         else { return }
         let onDismiss = { (generalCondition: [Bool], detailCondition: [Int]) in
             issueListViewModel.filter = IssueFilter(generalCondition: generalCondition, detailCondition: detailCondition)
             self.collectionView.scrollsToTop = true
         }
-        IssueFilterViewController.present(at: self, filterViewModel: issueListViewModel.createFilterViewModel(), onDismiss: onDismiss)
+        IssueFilterViewController.present(at: self, filterViewModel: issueListViewModel.outputs.createFilterViewModel(), onDismiss: onDismiss)
     }
 
     private func presentIssueDetailViewController(indexPath: IndexPath) {
         guard let issueListViewModel = issueListViewModel,
-              let issueDetailViewModel = issueListViewModel.createIssueDetailViewModel(path: indexPath)
+              let issueDetailViewModel = issueListViewModel.outputs.createIssueDetailViewModel(path: indexPath)
         else { return }
         let issueDetailVC = IssueDetailViewController.createViewController(issueDetailViewModel: issueDetailViewModel)
         navigationController?.pushViewController(issueDetailVC, animated: true)
@@ -235,11 +244,11 @@ extension IssueListViewController {
 
 extension IssueListViewController: IssucCellViewDelegate {
     func closeIssueButtonTapped(_: IssueCellView, at id: Int) {
-        issueListViewModel?.closeIssue(of: id)
+        issueListViewModel?.inputs.closeIssue(of: id)
     }
 
     func deleteIssueButtonTapped(_: IssueCellView, at id: Int) {
-        issueListViewModel?.deleteIssue(of: id)
+        issueListViewModel?.inputs.deleteIssue(of: id)
     }
 
     func issueCellViewBeginDragging(_ issueCellView: IssueCellView, at _: Int) {
@@ -256,6 +265,6 @@ extension IssueListViewController: IssucCellViewDelegate {
 
 extension IssueListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        issueListViewModel?.onSearch(text: searchController.searchBar.searchTextField.text)
+        issueListViewModel?.inputs.onSearch(text: searchController.searchBar.searchTextField.text)
     }
 }
