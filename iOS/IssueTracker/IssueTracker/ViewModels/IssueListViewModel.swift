@@ -269,7 +269,3 @@ extension IssueListViewModel {
         }
     }
 }
-
-// MARK: - SubViewModels
-
-extension IssueListViewModel {}

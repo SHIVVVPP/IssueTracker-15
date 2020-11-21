@@ -31,7 +31,6 @@ class IssueCellView: UICollectionViewCell {
     @IBOutlet var mainContentGuideView: UIView!
     @IBOutlet var closeBoxGuideView: UIView!
     @IBOutlet var deleteBoxGuideView: UIView!
-
     @IBOutlet var statusImage: UIImageView!
     @IBOutlet var titleLabel: UILabel!
     @IBOutlet var descriptionLabel: UILabel!
@@ -83,28 +82,24 @@ class IssueCellView: UICollectionViewCell {
         titleLabel.invalidateIntrinsicContentSize()
 
         issueItemViewModel.outputs.milestoneTitlePublisher
-            .receive(on: DispatchQueue.main)
             .sink { milestoneTitle in
                 self.setMilestone(title: milestoneTitle)
             }
             .store(in: &cancellables)
 
         issueItemViewModel.outputs.labelItemViewModelPublisher
-            .receive(on: DispatchQueue.main)
             .sink { labels in
                 self.setLabels(labelViewModels: labels)
             }
             .store(in: &cancellables)
 
         issueItemViewModel.outputs.isOpenedPublisher
-            .receive(on: DispatchQueue.main)
             .sink { isOpen in
                 self.setStatus(isOpened: isOpen)
             }
             .store(in: &cancellables)
 
         issueItemViewModel.outputs.checkedPublisher
-            .receive(on: DispatchQueue.main)
             .sink { checked in
                 self.setCheck(checked)
             }
